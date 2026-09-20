@@ -87,7 +87,7 @@
     if(t.includes('non.')||t.includes('refus')||t.includes('trop tôt')||t.includes('rat'))sfx.wrong();
     else if(t.includes('termin')||t.includes('réussi')||t.includes('parfait')||t.includes('exact'))sfx.soft()
   });
-  if(window.toastBox)toastObserver.observe(toastBox,{attributes:true,attributeFilter:['class']});
+  if(typeof toastBox!=='undefined')toastObserver.observe(toastBox,{attributes:true,attributeFilter:['class']});
 
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopRing();stopHeart()}else scanScene()});
 })();
