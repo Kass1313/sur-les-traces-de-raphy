@@ -1723,6 +1723,119 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V27 CINEMATIC OPENING ===== */
+(()=>{
+  const V27_SCENES=[
+    {kind:'optique',badge:'25 AVRIL 2026',ambient:'magasin de lunettes',detail:'New York'},
+    {kind:'cigarettes',badge:'30 AVRIL · 18:00',ambient:'deux cigarettes',detail:'2'},
+    {kind:'water',badge:'30 AVRIL · 19:00',ambient:'retour inattendu',detail:'Cristaline'},
+    {kind:'phone',badge:'2 MAI',ambient:'appel après le travail',detail:'Snapchat'},
+    {kind:'salon',badge:'4 MAI',ambient:'Salon-de-Provence',detail:'balançoire'},
+    {kind:'police',badge:'PLUS TARD',ambient:'soirée normale : refusée',detail:'🚓'},
+    {kind:'beach',badge:'11 MAI',ambient:'plage · sushi · premier baiser',detail:'1105'},
+    {kind:'parking',badge:'LES SOIRS D’APRÈS',ambient:'parler sans regarder l’heure',detail:'🛒'},
+    {kind:'jacuzzi',badge:'JUIN',ambient:'juste vous deux',detail:'LED'},
+    {kind:'marseille',badge:'JUIN',ambient:'surprise Marseille',detail:'Bonne Mère'},
+    {kind:'everyday',badge:'PUIS LE QUOTIDIEN',ambient:'les détails deviennent un langage',detail:'traces'}
+  ];
+
+  const art=(i)=>{
+    const s=V27_SCENES[i]||V27_SCENES[0];
+    const arts={
+      optique:'<div class="v27-shop"><div class="v27-sign">OPTIQUE</div><div class="v27-counter"></div><div class="v27-glasses g1">◉—◉</div><div class="v27-glasses g2">◉—◉</div><div class="v27-raphy-silhouette"><span>✦</span></div><button class="v27-detail" data-v27-detail>NEW YORK</button></div>',
+      cigarettes:'<div class="v27-evening"><div class="v27-shopdoor"></div><div class="v27-cig c1">▯</div><div class="v27-cig c2">▯</div><div class="v27-clock">18:00</div><button class="v27-detail" data-v27-detail>exactement deux</button></div>',
+      water:'<div class="v27-evening water"><div class="v27-clock">19:00</div><div class="v27-bottle b1">💧</div><div class="v27-bottle b2">💧</div><div class="v27-return-arrow">↩</div><button class="v27-detail" data-v27-detail>elle est revenue</button></div>',
+      phone:'<div class="v27-phone-scene"><div class="v27-phone-shell"><div class="v27-callbar">appel magasin</div><div class="v27-chat"><i></i><i></i><i></i></div><div class="v27-snap">👻</div></div><button class="v27-detail" data-v27-detail>après le travail</button></div>',
+      salon:'<div class="v27-salon"><div class="v27-restaurant">🍽️</div><div class="v27-sky-stars">✦ · ✧ · ✦</div><div class="v27-swing"><span>◯</span><i></i></div><button class="v27-detail" data-v27-detail>regarder le ciel</button></div>',
+      police:'<div class="v27-police"><div class="v27-road"></div><div class="v27-car">🚗</div><div class="v27-lights"><i></i><i></i></div><div class="v27-policecar">🚓</div><button class="v27-detail" data-v27-detail>évidemment</button></div>',
+      beach:'<div class="v27-beach"><div class="v27-moon">☾</div><div class="v27-sea"></div><div class="v27-blanket"></div><div class="v27-sushi">🍣 🍱</div><div class="v27-heart-pulse">♥</div><button class="v27-detail" data-v27-detail>1105</button></div>',
+      parking:'<div class="v27-parking"><div class="v27-market">SUPERMARCHÉ</div><div class="v27-car parked">🚗</div><div class="v27-talk">… … …</div><button class="v27-detail" data-v27-detail>encore cinq minutes</button></div>',
+      jacuzzi:'<div class="v27-jacuzzi"><div class="v27-leds"><i></i><i></i><i></i><i></i></div><div class="v27-water-ring">◌</div><div class="v27-two">●　●</div><button class="v27-detail" data-v27-detail>monde sur silencieux</button></div>',
+      marseille:'<div class="v27-marseille"><div class="v27-sun">☀</div><div class="v27-train">🚂</div><div class="v27-hill"></div><div class="v27-basilica">⛪</div><button class="v27-detail" data-v27-detail>Bonne Mère</button></div>',
+      everyday:'<div class="v27-everyday"><div class="v27-grid-mem"><span>🏥</span><span>🪛</span><span>🚗</span><span>🚰</span><span>🎬</span><span>🐈</span></div><div class="v27-thread"></div><button class="v27-detail" data-v27-detail>tout devient une trace</button></div>'
+    };
+    return '<div class="v27-film"><div class="v27-film-grain"></div><div class="v27-film-badge">'+s.badge+'</div>'+arts[s.kind]+'<div class="v27-film-caption">'+s.ambient+'</div></div>'
+  };
+
+  opening = function(){
+    screen(
+      '<div class="v27-opening">'+
+        '<div class="v27-envelope" id="v27Envelope"><div class="v27-envelope-back"></div><div class="v27-envelope-flap"></div><div class="v27-envelope-paper"><span>POUR RAPHY</span><small>ouvrir seulement si tu assumes les conséquences</small></div><button class="v27-seal" id="v27Seal">R</button></div>'+
+        '<div class="v27-opening-copy"><p>J’avais prévu quelque chose de simple.</p><p>Puis Hamoud a touché un truc.</p></div>'+
+        '<div class="mystery-line">« Suis les traces. Certaines sont à toi. D’autres… se souviennent de toi. »</div>'+
+      '</div>',
+      'centered cinema-screen'
+    );
+    $('#v27Seal').onclick=()=>{
+      $('#v27Envelope').classList.add('open');
+      vib([8,20,8]);
+      setTimeout(()=>{
+        $('#v27Seal').outerHTML='<button class="btn gold" id="v27OpenDossier">Ouvrir le dossier</button>';
+        $('#v27OpenDossier').onclick=()=>cinematicStory(0)
+      },650)
+    }
+  };
+
+  cinematicStory = function(i){
+    if(i>=CINEMA_STORY.length){
+      S.storyDone=true;save();return cinematicReveal()
+    }
+    const s=CINEMA_STORY[i];
+    screen(
+      '<div class="v27-memory-progress"><span>'+String(i+1).padStart(2,'0')+'</span><div><i style="width:'+((i+1)/CINEMA_STORY.length*100)+'%"></i></div><small>'+CINEMA_STORY.length+'</small></div>'+
+      art(i)+
+      '<div class="v27-memory-copy"><div class="eyebrow">'+s.tag+'</div><h2>'+s.title+'</h2><p>'+s.text+'</p></div>'+
+      '<div class="memory-lines">'+s.lines.map((x,j)=>'<div class="memory-line" style="animation-delay:'+(j*.14)+'s">'+x+'</div>').join('')+'</div>'+
+      '<div class="card v27-choice-card"><div class="eyebrow">Raphy répond</div><div class="choices" style="margin-top:12px">'+s.choices.map((x,j)=>'<button class="choice" data-cstory="'+j+'">'+x+'</button>').join('')+'</div></div>'
+    );
+    $('[data-v27-detail]')?.addEventListener('click',e=>{
+      e.currentTarget.classList.add('revealed');
+      const msg=[
+        'Oui. Mehdi avait remarqué ça aussi. Les lunettes, elles, attendaient toujours.',
+        'Deux. Le nombre officiel du prétexte.',
+        'Le détail important n’est pas l’eau. C’est qu’elle est revenue.',
+        'Il fallait bien changer de canal pour continuer à parler.',
+        'Une balançoire en pneu finit officiellement dans une chronologie romantique.',
+        'La police : figurant non prévu, présence remarquée.',
+        '1105. Cette date reviendra. Garde-la quelque part.',
+        'Un parking peut devenir important quand on oublie de regarder l’heure.',
+        'Pas besoin d’un grand décor quand tout le reste s’éteint un peu.',
+        'Le trajet comptait presque autant que la destination.',
+        'C’est là que les “grands souvenirs” arrêtent d’être les seuls importants.'
+      ][i];
+      toast(msg,3200)
+    });
+    $('[data-cstory]').forEach(b=>b.onclick=()=>{
+      const j=+b.dataset.cstory;
+      S.choices['cinema_'+i]=j;if(i===0)S.choices.story0=j;save();
+      const generic=[
+        'Choix enregistré. Le dossier sourit beaucoup trop.',
+        'La maison note ce détail sans demander l’autorisation.',
+        'Hamoud n’a rien dit. Ce qui est déjà suspect.'
+      ];
+      toast(generic[j]||generic[0],2200);
+      document.querySelector('.v27-film')?.classList.add('leaving');
+      setTimeout(()=>cinematicStory(i+1),620)
+    })
+  };
+
+  cinematicReveal = function(){
+    screen(
+      '<div class="v27-title-reveal">'+
+        '<div class="v27-title-traces">'+Array.from({length:9},(_,i)=>'<i style="--n:'+i+'"></i>').join('')+'</div>'+
+        '<div class="eyebrow">LE DOSSIER A UN NOM</div>'+
+        '<h1>Sur les traces<br><em>de Raphy</em></h1>'+
+        '<p>Une maison. Des souvenirs. Des détails beaucoup trop précis.</p>'+
+        '<div class="v27-title-objects"><span>👓</span><span>💧</span><span>🛞</span><span>🌊</span><span>🚂</span><span>🐈</span></div>'+
+        '<button class="btn gold" id="v27Enter">Entrer dans la première trace</button>'+
+      '</div>',
+      'centered title-screen'
+    );
+    $('#v27Enter').onclick=()=>route(0)
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
