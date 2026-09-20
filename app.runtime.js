@@ -3782,6 +3782,125 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
 
 window.RaphyBuild='37';
 if(window.RaphyApp)window.RaphyApp.version='37';
+
+/* ===== V38 SLOWER IMMERSIVE PACING ===== */
+(()=>{
+  const BUILD='38';
+  const PACE_KEY='raphy-v38-pace';
+  let pace=localStorage.getItem(PACE_KEY)||'immersive';
+  let sceneStartedAt=performance.now();
+
+  const routeV38=route;
+  route=function(i){
+    sceneStartedAt=performance.now();
+    return routeV38(i)
+  };
+
+  const pacingNotes=[
+    'Prends une seconde. La prochaine trace peut attendre.',
+    'Le dossier ne se ferme pas tout seul. Pas cette fois.',
+    'Une trace de plus. Laisse-la rester un peu avant la suivante.',
+    'Pas besoin de courir. Ce jeu n’est pas un chrono.',
+    'Hamoud a demandé une pause administrative. Pour une fois, il a raison.',
+    'La maison garde ce détail. Toi, tu peux garder quelques secondes.'
+  ];
+
+  chapterCurtain=function(fromIndex,nextIndex,skipped){
+    const ominous=[3,8,17,18,19,20,21,22,24].includes(fromIndex);
+    const elapsed=Math.max(0,Math.round((performance.now()-sceneStartedAt)/1000));
+    const minHold=pace==='immersive'?4500:1200;
+    const note=pacingNotes[fromIndex%pacingNotes.length];
+
+    screen(
+      '<div class="v38-curtain '+(ominous?'ominous':'')+'">'+
+        '<div class="v38-curtain-orbit"><span>'+(ominous?'◌':'✦')+'</span></div>'+
+        '<div class="eyebrow">'+(skipped?'TRACE PASSÉE':'TRACE CLASSÉE')+'</div>'+
+        '<h2>'+NAMES[fromIndex]+'</h2>'+
+        '<div class="v38-curtain-rule"></div>'+
+        '<p class="v38-curtain-note">'+note+'</p>'+
+        '<div class="v38-curtain-meta"><span>'+Math.max(1,elapsed)+' s dans cette trace</span><span>'+(fromIndex+1)+'/26</span></div>'+
+        '<div class="v38-next-preview"><small>PROCHAINE TRACE</small><h3>'+NAMES[nextIndex]+'</h3></div>'+
+        '<button class="btn secondary v38-next-btn" id="v38CurtainNext" disabled>Continue quand tu veux</button>'+
+        '<div class="v38-wait" id="v38Wait"><i></i><span>On laisse respirer l’histoire…</span></div>'+
+      '</div>',
+      'centered'
+    );
+
+    let ready=false,fired=false;
+    const btn=$('#v38CurtainNext'),wait=$('#v38Wait');
+    setTimeout(()=>{
+      if(!btn?.isConnected)return;
+      ready=true;btn.disabled=false;
+      btn.textContent='Continuer vers « '+NAMES[nextIndex]+' »';
+      wait?.classList.add('ready');
+      if(wait)wait.querySelector('span').textContent='À toi de décider quand continuer.';
+      vib(5)
+    },minHold);
+
+    btn.onclick=()=>{
+      if(!ready||fired)return;
+      fired=true;btn.disabled=true;
+      route(nextIndex)
+    }
+  };
+
+  // Replace the old settings UI so pace can be controlled explicitly.
+  openSettings=function(){
+    modal.hidden=false;
+    modal.innerHTML=
+      '<div class="modal-card v24-modal">'+
+        '<div class="eyebrow">RÉGLAGES</div><h2>À ta façon.</h2>'+
+        '<div class="v24-setting"><div><b>Rythme</b><small>Immersif = pauses entre les traces. Rapide = transitions plus courtes.</small></div><button class="btn small secondary" id="setPace">'+(pace==='immersive'?'Immersif':'Rapide')+'</button></div>'+
+        '<div class="v24-setting"><div><b>Son</b><small>Effets discrets générés par le navigateur.</small></div><button class="btn small secondary" id="setSound">'+(prefs.sound?'Activé':'Coupé')+'</button></div>'+
+        '<div class="v24-setting"><div><b>Animations</b><small>Réduire les mouvements si tu préfères.</small></div><button class="btn small secondary" id="setMotion">'+(prefs.motion?'Normales':'Réduites')+'</button></div>'+
+        '<div class="v24-setting"><div><b>Horreur</b><small>Réduit insectes, ombre et effets soudains.</small></div><button class="btn small secondary" id="setFear">'+(prefs.fear==='reduced'?'Réduite':'Normale')+'</button></div>'+
+        '<button class="btn" id="setClose" style="margin-top:14px">Fermer</button>'+
+      '</div>';
+    $('#setPace').onclick=()=>{
+      pace=pace==='immersive'?'fast':'immersive';
+      localStorage.setItem(PACE_KEY,pace);
+      toast(pace==='immersive'?'Rythme immersif activé : plus de pauses, aucun enchaînement automatique.':'Rythme rapide activé.');
+      openSettings()
+    };
+    $('#setSound').onclick=()=>{prefs.sound=!prefs.sound;savePrefs();openSettings();syncControls()};
+    $('#setMotion').onclick=()=>{prefs.motion=!prefs.motion;savePrefs();applyPrefs();openSettings()};
+    $('#setFear').onclick=()=>{prefs.fear=prefs.fear==='reduced'?'normal':'reduced';savePrefs();applyPrefs();openSettings()};
+    $('#setClose').onclick=()=>{modal.hidden=true;modal.innerHTML=''}
+  };
+
+  // Make act separators manual too in immersive mode.
+  showAct=function(i,def,continueFn){
+    screen(
+      '<div class="v38-act">'+
+        '<div class="v24-act-symbol">'+def[3]+'</div>'+
+        '<div class="eyebrow">'+def[0]+'</div>'+
+        '<h1>'+def[1]+'</h1>'+
+        '<div class="v24-rule"></div>'+
+        '<p>'+def[2]+'</p>'+
+        '<button class="btn secondary" id="v38ActGo">'+(pace==='immersive'?'Entrer dans cet acte':'Continuer')+'</button>'+
+      '</div>',
+      'centered'
+    );
+    let gone=false;
+    const go=()=>{if(gone)return;gone=true;continueFn()};
+    $('#v38ActGo').onclick=go;
+    if(pace!=='immersive')setTimeout(go,i>=18?2600:1800)
+  };
+
+  // A brief "result beat" before certain short multi-question scenes advance internally.
+  document.addEventListener('click',e=>{
+    const next=e.target.closest('#gnext,#v36GNext');
+    if(!next||pace!=='immersive')return;
+    next.disabled=true;
+    const old=next.textContent;
+    next.textContent='Un instant…';
+    setTimeout(()=>{if(next.isConnected){next.disabled=false;next.textContent=old}},700)
+  },true);
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
