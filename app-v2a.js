@@ -1,5 +1,6 @@
 
 'use strict';
+const clampValue=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 function departure(){
   let support=52,walk=0,holding=false,phase='walk';
@@ -13,7 +14,7 @@ function departure(){
   const loop=t=>{
     if(!st.isConnected||phase!=='walk')return;
     const dt=Math.min(40,t-last)/16;last=t;
-    support+=holding?1.15*dt:-.72*dt;support=clamp(support,4,96);sb.style.width=support+'%';
+    support+=holding?1.15*dt:-.72*dt;support=clampValue(support,4,96);sb.style.width=support+'%';
     const good=support>=38&&support<=68;sb.style.filter=good?'brightness(1.25)':'saturate(.45)';
     if(good){walk+=.28*dt;walker.style.left=Math.min(84,walk*.84)+'%';wb.style.width=Math.min(100,walk)+'%'}
     else if(t-warn>1800){warn=t;toast(support<38?'Un peu plus de soutien. Raphy fait la forte, évidemment.':'Doucement. On l’aide, on ne la transporte pas comme une commode.')}
