@@ -2184,6 +2184,315 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V30 HOSPITAL & KIDS IMMERSION ===== */
+(()=>{
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+  departure = function(){
+    let support=50,walk=0,holding=false,phase='walk',last=performance.now(),warn=0;
+    screen(
+      top(0)+hero('Trace 01','Le départ','La première mission n’a rien d’héroïque : avancer doucement, puis survivre au trajet jusqu’à l’hôpital.')+
+      '<div class="v30-hall" id="v30Hall">'+
+        '<div class="v30-hall-lines"></div><div class="v30-door d1"></div><div class="v30-door d2"></div>'+
+        '<div class="v30-walker" id="v30Walker"><span>👩🏻</span><i id="v30SupportArm"></i></div>'+
+        '<button class="v30-cat-door" id="v30HallCat">🐈</button>'+
+        '<div class="v30-comfort"><span>trop peu</span><b>ZONE CONFORT</b><span>trop</span></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span>Soutien <b id="v30Support">50%</b></span><span>Sortie <b id="v30Walk">0%</b></span></div><div class="meter"><i id="v30SupportBar" style="width:50%"></i></div><div class="meter cold" style="margin-top:10px"><i id="v30WalkBar"></i></div><p class="caption">Maintiens la zone de marche pour soutenir davantage. Relâche pour alléger.</p></div>'+skip(0)
+    );
+    wireSkip(0);
+    const hall=$('#v30Hall'),sb=$('#v30SupportBar'),wb=$('#v30WalkBar'),walker=$('#v30Walker');
+    $('#v30HallCat').onclick=()=>toast('Hamoud observe la scène comme s’il avait personnellement organisé le rendez-vous.');
+    hall.onpointerdown=e=>{if(e.target.closest('button'))return;e.preventDefault();holding=true};
+    hall.onpointerup=()=>holding=false;hall.onpointercancel=()=>holding=false;hall.onpointerleave=()=>holding=false;
+
+    const loop=t=>{
+      if(!hall.isConnected||phase!=='walk')return;
+      const dt=Math.min(40,t-last)/16;last=t;
+      support+=holding?1.05*dt:-.66*dt;support=Math.max(4,Math.min(96,support));
+      const good=support>=39&&support<=67;
+      sb.style.width=support+'%';sb.classList.toggle('good',good);
+      $('#v30Support').textContent=Math.round(support)+'%';
+      $('#v30SupportArm').style.opacity=good?'.9':'.35';
+      if(good){walk+=.31*dt;wb.style.width=Math.min(100,walk)+'%';$('#v30Walk').textContent=Math.floor(Math.min(100,walk))+'%';walker.style.left=(7+Math.min(78,walk*.76))+'%'}
+      else if(t-warn>1700){warn=t;toast(support<39?'Un peu plus de soutien. Elle fait la forte, évidemment.':'Doucement. On aide Raphy, on ne la transporte pas comme un meuble.')}
+      if(walk>=100){phase='drive';vib([8,18]);toast('Couloir terminé. Hamoud considère l’abandon du domicile comme une décision discutable.');setTimeout(drive,650);return}
+      requestAnimationFrame(loop)
+    };
+    requestAnimationFrame(loop);
+
+    function drive(){
+      screen(
+        top(0)+hero('Trace 01 · partie 2','Trajet vers l’hôpital','Trois voies, quelques bosses et un conducteur beaucoup trop confiant.')+
+        '<div class="v30-road" id="v30Road"><div class="v30-road-sky"><span>HÔPITAL ↑</span></div><div class="v30-road-lines"></div><div class="v30-car" id="v30Car">🚗</div><div id="v30Obs"></div></div>'+
+        '<div class="card"><div class="hud"><span>Trajet <b id="v30Dist">0%</b></span><span>Bosses <b id="v30Hits">0</b></span></div><div class="meter cold"><i id="v30DriveBar"></i></div><div class="actions two" style="margin-top:12px"><button class="btn secondary" id="v30Left">← Gauche</button><button class="btn secondary" id="v30Right">Droite →</button></div></div>'+skip(0)
+      );
+      wireSkip(0);
+      let lane=1,d=0,hits=0,obs=[],spawnTick=0,lastT=performance.now();
+      const road=$('#v30Road'),car=$('#v30Car'),layer=$('#v30Obs');
+      const setLane=()=>{car.style.left=(16+lane*34)+'%'};
+      setLane();
+      $('#v30Left').onclick=()=>{lane=Math.max(0,lane-1);setLane();vib(6)};
+      $('#v30Right').onclick=()=>{lane=Math.min(2,lane+1);setLane();vib(6)};
+
+      const spawn=()=>{
+        const el=document.createElement('div'),ln=Math.floor(Math.random()*3);
+        el.className='v30-bump';el.style.left=(12+ln*34)+'%';el.style.top='-46px';el.textContent=Math.random()>.72?'🕳️':'▰';
+        layer.append(el);obs.push({el,lane:ln,y:-46,hit:false})
+      };
+      const run=t=>{
+        if(!road.isConnected)return;
+        const dt=Math.min(40,t-lastT)/16;lastT=t;spawnTick+=dt;
+        if(spawnTick>40){spawnTick=0;spawn()}
+        d+=.23*dt;$('#v30DriveBar').style.width=Math.min(100,d)+'%';$('#v30Dist').textContent=Math.floor(Math.min(100,d))+'%';
+        obs.forEach(o=>{
+          o.y+=4.2*dt;o.el.style.top=o.y+'px';
+          if(!o.hit&&o.y>road.clientHeight-130&&o.y<road.clientHeight-65&&o.lane===lane){
+            o.hit=true;hits++;d=Math.max(0,d-4.5);$('#v30Hits').textContent=hits;vib([14,22,14]);
+            toast(hits===1?'Dos-d’âne détecté par le dos avant le conducteur. C’est incroyable.':'La suspension vient de demander à changer de famille.')
+          }
+        });
+        obs=obs.filter(o=>{if(o.y>road.clientHeight+60){o.el.remove();return false}return true});
+        if(d>=100){toast(hits<2?'Arrivée propre. Même Raphy est légèrement surprise.':'Hôpital atteint. Mehdi et la route ne se parlent plus.');setTimeout(()=>complete(0),850);return}
+        requestAnimationFrame(run)
+      };
+      requestAnimationFrame(run)
+    }
+  };
+
+  mri = function(){
+    let scan=0,stability=88,breaths=0,windowOpen=false,finished=false,last=performance.now(),start=performance.now(),revealed=false;
+    screen(
+      top(1)+hero('Trace 02','IRM : mission immobilité','Bruits étranges, envie de bouger et un logiciel qui reconstruit absolument n’importe quoi.')+
+      '<div class="v30-mri" id="v30MRI">'+
+        '<div class="v30-mri-tunnel"><div class="v30-mri-bed">😐</div><div class="v30-scan-line"></div><div id="v30ScanGhost" class="v30-scan-ghost">NEW YORK ?</div></div>'+
+        '<div class="v30-breath-ring" id="v30BreathRing"></div>'+
+        '<button class="v30-tempt nose" id="v30Nose">🤧<span>toucher le nez</span></button>'+
+        '<button class="v30-tempt itch" id="v30Itch">✦<span>ça gratte ici</span></button>'+
+        '<div class="v30-mri-noise">KRRR · TUM · TUM · KRRR</div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span>Stabilité <b id="v30Stab">88%</b></span><span>Respiration <b id="v30Breaths">0/5</b></span></div><div class="meter cold"><i id="v30ScanBar"></i></div><button class="btn secondary" id="v30Breathe" style="margin-top:12px">Caler la respiration</button><p class="caption" id="v30MRICopy">Tape quand l’anneau devient doré.</p></div>'+skip(1)
+    );
+    wireSkip(1);
+    $('#v30Nose').onclick=()=>{stability-=12;vib(10);toast('Le nez gagne. Le scanner ajoute “mouvement artistique”.')};
+    $('#v30Itch').onclick=()=>{stability-=15;vib(10);toast('Très mauvaise idée. Le logiciel transforme le tatouage en “NEW… YOR?”.')};
+    $('#v30Breathe').onclick=()=>{
+      if(windowOpen){breaths++;stability=Math.min(100,stability+4);vib(7);toast(breaths===5?'Cinquième respiration. Le scanner rend les armes.':'Timing propre.')}
+      else{stability-=7;toast('Pas maintenant. Le bip vient de lever un sourcil imaginaire.')}
+      $('#v30Breaths').textContent=breaths+'/5';$('#v30Stab').textContent=Math.max(0,Math.round(stability))+'%'
+    };
+    const loop=t=>{
+      const ring=$('#v30BreathRing');if(!ring?.isConnected||finished)return;
+      const ph=((t-start)%2100)/2100,scale=.73+Math.sin(ph*Math.PI)*.55;
+      ring.style.transform='translate(-50%,-50%) scale('+scale+')';
+      windowOpen=scale>1.08&&scale<1.2;ring.classList.toggle('gold',windowOpen);
+      const dt=Math.min(40,t-last)/16;last=t;scan+=.12*dt;stability-=.01*dt;
+      $('#v30ScanBar').style.width=Math.min(100,scan)+'%';$('#v30Stab').textContent=Math.max(0,Math.round(stability))+'%';
+      if(scan>47&&!revealed){revealed=true;$('#v30ScanGhost').classList.add('show');$('#v30MRICopy').textContent='Le logiciel vient de “reconstruire” un détail du premier jour.';toast('NEW YORK ? Le scanner vient de fouiller dans le dossier.')}
+      if(scan>=100||breaths>=5){finished=true;toast(stability>65?'IRM terminé. Immobilité franchement suspecte.':'IRM terminé. Le tatouage demande un second avis graphique.');setTimeout(()=>complete(1),850);return}
+      requestAnimationFrame(loop)
+    };
+    requestAnimationFrame(loop)
+  };
+
+  physioGame = function(){
+    let round=0,score=0,holding=false,start=0,target=0,steady=50;
+    const moves=[
+      ['Flamant administratif','🦩',950,1350,'Garde la pose sans transformer ton genou en formulaire administratif.'],
+      ['Chaise invisible de la CAF','🪑',1050,1500,'La chaise n’existe pas. La brûlure dans les cuisses, conceptuellement, si.'],
+      ['Pont très optimiste','🌉',800,1250,'Le pont tient avec du gainage et une confiance probablement excessive.'],
+      ['Chat qui regrette ses choix','🐈',900,1350,'Hamoud refuse l’exercice mais participe au jugement.'],
+      ['Respiration « je vais bien »','😮‍💨',1150,1650,'Inspire. Expire. Dire “ça va” reste facultatif.']
+    ];
+    screen(
+      top(2)+hero('Trace 03','Kiné : protocole très officiel','Tiens chaque pose dans la bonne fenêtre tout en gardant l’équilibre.')+
+      '<div class="v30-physio"><div class="v30-physio-grid"></div><div id="v30Pose" class="v30-pose">🦩</div><div class="v30-mirror"></div><div class="v30-balance"><span>gauche</span><div><i id="v30Needle"></i></div><span>droite</span></div><button class="v30-physio-cat" id="v30PhysioCat">🐈</button></div>'+
+      '<div class="card"><div class="hud"><span>Exercice <b id="v30PR">1/5</b></span><span>Validés <b id="v30PS">0</b></span></div><h3 id="v30PName"></h3><p class="caption" id="v30PText"></p><button class="btn" id="v30Hold">Maintenir la pose</button><div class="meter" style="margin-top:12px"><i id="v30PoseBar"></i></div></div>'+skip(2)
+    );
+    wireSkip(2);
+    $('#v30PhysioCat').onclick=()=>toast('Hamoud donne 3/10 à la posture. Aucun diplôme fourni.');
+    const btn=$('#v30Hold'),bar=$('#v30PoseBar'),needle=$('#v30Needle');
+    const draw=()=>{
+      if(round>=moves.length){toast(score>=4?'Le kiné imaginaire est obligé d’admettre que c’était propre.':'Séance terminée. La dignité a fait ce qu’elle a pu.');setTimeout(()=>complete(2),850);return}
+      const m=moves[round];target=m[2]+Math.random()*(m[3]-m[2]);steady=50;
+      $('#v30PR').textContent=(round+1)+'/5';$('#v30PS').textContent=score;$('#v30PName').textContent=m[0];$('#v30PText').textContent=m[4];$('#v30Pose').textContent=m[1];bar.style.width='0%';needle.style.left='50%';btn.disabled=false;btn.textContent='Maintenir la pose'
+    };
+    btn.onpointerdown=e=>{
+      e.preventDefault();if(holding)return;holding=true;start=performance.now();btn.textContent='Tiens…';
+      const anim=()=>{
+        if(!holding||!btn.isConnected)return;
+        const elapsed=performance.now()-start;
+        steady=50+Math.sin(elapsed/125)*16+Math.sin(elapsed/260)*5;
+        needle.style.left=steady+'%';bar.style.width=Math.min(100,elapsed/target*100)+'%';
+        requestAnimationFrame(anim)
+      };anim()
+    };
+    const release=()=>{
+      if(!holding)return;holding=false;
+      const elapsed=performance.now()-start,ratio=elapsed/target,balance=Math.abs(steady-50);
+      const good=ratio>.82&&ratio<1.2&&balance<20;
+      if(good){score++;vib(7);toast(['Timing propre.','Équilibre validé. Hamoud retire une objection.','Exercice homologué sans formulaire.'][round%3])}
+      else toast(ratio<.82?'Trop court. La pose n’avait même pas fini de se plaindre.':ratio>1.2?'Trop long. On était sur un exercice, pas un bail.':'Le timing était bon, mais l’équilibre a déposé une réclamation.');
+      round++;setTimeout(draw,500)
+    };
+    btn.onpointerup=release;btn.onpointercancel=release;btn.onpointerleave=release;draw()
+  };
+
+  operationGame = function(){
+    let phase=0,alignment=50,monitor=72,toolFound=false,pattern=[],closed=false;
+    const stitchGoal=[1,3,2,4];
+    screen(
+      top(3)+hero('Trace 04','Bloc fictif : dos neuf','Puzzle volontairement absurde. Aucun geste médical réel à reproduire.')+
+      '<div class="v30-op"><div class="v30-op-lights"></div><div class="v30-op-monitor"><span>♥</span><b id="v30Pulse">72</b><small id="v30Wave">⌁⌁⌁⌁</small></div><div class="v30-spine"><div>L4</div><i id="v30Disc">●</i><div>L5</div></div><button class="v30-op-cat" id="v30OpCat">🐈</button><div id="v30OpTool" class="v30-op-tool">🔧</div></div>'+
+      '<div class="card"><div class="hud"><span id="v30OpPhase">1/4 · ALIGNER</span><span>Moniteur <b id="v30Monitor">72</b></span></div><div id="v30OpControls"><input id="v30Align" type="range" min="0" max="100" value="50" style="width:100%"><div class="actions two" style="margin-top:12px"><button class="btn secondary" id="v30OpAction">Valider</button><button class="btn secondary" id="v30OpCalm">Respiration guidée</button></div></div><p class="caption" id="v30OpCopy">Centre le disque dans la zone stable.</p></div>'+skip(3)
+    );
+    wireSkip(3);
+    const range=$('#v30Align');
+    const refresh=()=>{$('#v30Monitor').textContent=Math.round(monitor);$('#v30Pulse').textContent=Math.round(monitor);$('#v30Wave').textContent=monitor>=78&&monitor<=86?'⌁⌁⌁⌁':'⌁╲⌁╱'};
+    range.oninput=()=>{alignment=+range.value;$('#v30Disc').style.transform='translateX('+(alignment-50)*1.65+'px)'};
+    $('#v30OpCat').onclick=()=>{
+      if(phase===1&&!toolFound){toolFound=true;$('#v30OpTool').classList.add('visible');toast('Hamoud avait l’outil. Sous lui. Depuis le début.');vib(8)}
+      else toast('Consultant félin : non certifié, très sûr de lui.')
+    };
+    $('#v30OpCalm').onclick=()=>{
+      if(phase!==2)return toast('Pas encore. Le moniteur n’a pas commencé son drame.');
+      if(monitor<80)monitor+=4;else if(monitor>84)monitor-=4;else monitor+=(Math.random()>.5?1:-1);
+      refresh();toast(monitor>=78&&monitor<=86?'Zone stable. Le bip redevient fréquentable.':'Ça se rapproche.')
+    };
+    $('#v30OpAction').onclick=()=>{
+      if(closed)return;
+      if(phase===0){
+        if(Math.abs(alignment-50)>8){monitor=Math.max(60,monitor-4);refresh();return toast('Trop décalé. Le chirurgien accuse déjà le matériel.')}
+        phase=1;range.disabled=true;$('#v30OpPhase').textContent='2/4 · OUTIL MANQUANT';$('#v30OpCopy').textContent='Quelqu’un de poilu est assis sur quelque chose.';toast('Alignement validé.')
+      }else if(phase===1){
+        if(!toolFound)return toast('L’outil manque toujours. Le chat évite le contact visuel.');
+        phase=2;monitor=70;refresh();$('#v30OpPhase').textContent='3/4 · STABILISER';$('#v30OpCopy').textContent='Ramène le moniteur entre 78 et 86.';$('#v30OpAction').textContent='Tester la stabilité'
+      }else if(phase===2){
+        if(monitor<78||monitor>86)return toast('Pas encore. Vise 78–86.');
+        phase=3;$('#v30OpPhase').textContent='4/4 · FERMETURE';$('#v30OpCopy').textContent='Mémorise puis reproduis la séquence de fermeture fictive.';$('#v30OpAction').style.display='none';$('#v30OpCalm').style.display='none';range.style.display='none';
+        const box=document.createElement('div');box.className='v30-stitch-grid';box.innerHTML=[1,2,3,4].map(n=>'<button data-v30stitch="'+n+'">'+n+'</button>').join('')+'<button class="btn secondary" id="v30ShowStitch">Voir la séquence</button>';$('#v30OpControls').append(box);
+        $('#v30ShowStitch').onclick=async()=>{
+          pattern=[];for(const n of stitchGoal){const b=$('[data-v30stitch="'+n+'"]');b.classList.add('flash');await sleep(330);b.classList.remove('flash');await sleep(100)}toast('À toi.')
+        };
+        $('[data-v30stitch]').forEach(b=>b.onclick=()=>{
+          const n=+b.dataset.v30stitch,k=pattern.length;pattern.push(n);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),180);
+          if(n!==stitchGoal[k]){pattern=[];toast('Séquence refusée. Même le bloc fictif a des standards.');return}
+          if(pattern.length===stitchGoal.length){closed=true;toast('Bloc fictif terminé. Le chirurgien rend enfin l’outil à quelqu’un de qualifié.');setTimeout(()=>complete(3),900)}
+        })
+      }
+    }
+  };
+
+  bedtimeGame = function(){
+    let q=0,sleepiness=18,requests=0;
+    const reactions=[
+      ['Mini verre accordé. Paix mondiale pour 11 secondes.','Elle te regarde comme si tu venais d’inventer la sécheresse.','Mehdi est officiellement incompétent en diplomatie hydrique.'],
+      ['Bonne décision. Elle avait en fait envie à 97%.','Attendre les 38% restants : stratégie statistiquement audacieuse.','Le calcul est refusé par la Cour du coucher.'],
+      ['Pied gauche libéré. Le droit demande les mêmes avantages.','Échange de pieds : l’anatomie refuse de signer.','Réunion des pieds reportée.'],
+      ['Doudou rassuré. Il réclame maintenant un verre d’eau.','Plainte du doudou pour management toxique.','Hamoud accepte le poste puis quitte son service.'],
+      ['Contrôle rapide : rien. Donc évidemment c’était terrifiant.','L’imitation du bruit ne clarifie absolument rien.','La maison entend qu’on parle d’elle. Mauvaise idée.'],
+      ['Réponse raisonnable. Le poisson attendra demain.','Cours d’osmose à cette heure : décision ambitieuse.','Mehdi consulté. Erreur stratégique immédiate.'],
+      ['Expérience lancée : dormir très fort.','Le temps refuse la négociation.','La sieste espagnole demande des droits d’auteur.']
+    ];
+    screen(
+      top(12)+hero('Trace 13','Opération dodo','Sept questions, une jauge de sommeil et un parquet qui attend ton erreur.')+
+      '<div class="v30-bedroom" id="v30Bedroom"><div class="v30-night-window"><div class="v30-moon">☾</div><div id="v30Stars"></div></div><div class="v30-bed">🛏️<span id="v30Girl">👧🏻</span><span class="v30-plush">🐷</span></div><div class="v30-door">🚪</div><button class="v30-bed-cat" id="v30BedCat">🐈</button></div>'+
+      '<div class="card"><div class="hud"><span>Sommeil <b id="v30Sleep">18%</b></span><span>Demandes <b id="v30Req">0</b></span></div><div class="meter"><i id="v30SleepBar" style="width:18%"></i></div><div id="v30BedQ" style="margin-top:14px"></div></div>'+skip(12)
+    );
+    wireSkip(12);
+    $('#v30BedCat').onclick=()=>toast('Hamoud a accepté le rôle de veilleur de nuit. Il dort déjà.');
+
+    const draw=()=>{
+      $('#v30Sleep').textContent=Math.min(100,sleepiness)+'%';$('#v30SleepBar').style.width=Math.min(100,sleepiness)+'%';$('#v30Req').textContent=requests;
+      $('#v30Bedroom').style.filter='brightness('+(1-Math.min(.34,sleepiness/300))+')';
+      if(q>=QGIRL.length)return prepStealth();
+      const z=QGIRL[q];
+      $('#v30BedQ').innerHTML='<div class="dialogue"><div class="avatar">👧🏻</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v30bq="'+j+'">'+x+'</button>').join('')+'</div>';
+      $('[data-v30bq]').forEach(b=>b.onclick=()=>{
+        const j=+b.dataset.v30bq;requests++;sleepiness+=j===0?13:j===1?8:5;vib(5);toast(reactions[q][j],2800);
+        if(q%2===0){const star=document.createElement('i');star.style.left=(15+Math.random()*70)+'%';star.style.top=(12+Math.random()*55)+'%';$('#v30Stars').append(star)}
+        $('#v30Girl').animate([{transform:'translateY(0)'},{transform:'translateY(-10px)'},{transform:'translateY(0)'}],{duration:380});
+        q++;setTimeout(draw,560)
+      })
+    };
+
+    function prepStealth(){
+      $('#v30BedQ').innerHTML='<div class="eyebrow">PHASE 2 · SORTIE FURTIVE</div><p>Elle dort. Maintenant, évite le doudou au sol, la latte qui grince et Hamoud.</p><div class="v30-stealth"><div class="v30-stealth-path"></div><div class="v30-stealth-foot" id="v30Foot">🦶</div><div class="v30-danger z1">🧸</div><div class="v30-danger z2">▦</div><div class="v30-danger z3">🐈</div></div><button class="btn secondary" id="v30Step" style="margin-top:12px">Faire un petit pas</button><p class="caption">Le bouton respire. Tape quand il est petit.</p>';
+      let pos=0,noise=0,safe=false,t0=performance.now();
+      const btn=$('#v30Step');
+      const pulse=()=>{
+        if(!btn?.isConnected)return;
+        const ph=((performance.now()-t0)%1500)/1500,scale=.74+Math.sin(ph*Math.PI)*.66;
+        btn.style.transform='scale('+scale+')';safe=scale<.94;requestAnimationFrame(pulse)
+      };pulse();
+      btn.onclick=()=>{
+        if(safe){pos+=19;toast('Silence parfait. Même le parquet est vexé.')}
+        else{noise++;pos+=9;vib(14);toast(noise===1?'CRAC. Tout le monde reste immobile.':'Hamoud ouvre un œil. Situation diplomatique critique.')}
+        $('#v30Foot').style.left=Math.min(90,pos)+'%';
+        if(pos>=90){toast('Sortie réussie. Puis une petite voix : « Maman… les poissons ils ont soif ? »');setTimeout(()=>complete(12),1000)}
+      }
+    }
+    draw()
+  };
+
+  heroKidGame = function(){
+    let q=0,power=20,got=0;
+    const gear=['🦸 Cape','🥷 Masque','📡 Gadget','🍎 Snack','⭐ Badge','🧸 Doudou secret défense'];
+    screen(
+      top(13)+hero('Trace 14','Mission super-héros','Sept questions philosophiques, six équipements et un mini combat final absolument essentiel.')+
+      '<div class="v30-hero-room"><div class="v30-city">▥ ▦ ▥</div><div class="v30-hero-beam"></div><div id="v30HeroBoy" class="v30-hero-boy">🦸🏻‍♂️</div><button id="v30HeroCat" class="v30-hero-cat">🐈‍⬛</button><div class="v30-villain" id="v30Villain">☁</div></div>'+
+      '<div class="card"><div class="hud"><span>Puissance <b id="v30Power">20%</b></span><span>Questions <b id="v30HQ">0/7</b></span></div><div class="meter cold"><i id="v30PowerBar" style="width:20%"></i></div><div id="v30HeroQ" style="margin-top:14px"></div></div>'+skip(13)
+    );
+    wireSkip(13);
+    const comments=[
+      ['Pyjama officiellement compatible avec l’héroïsme.','Doublement habillé, donc impossible à coucher.','Réponse diplomatique parfaite.'],
+      ['Même les héros mangent les légumes. Tragédie validée.','Le ministère des brocolis ouvre une enquête.','Carotte héroïque homologuée.'],
+      ['Exact. Maman sait. Ne demande pas comment.','Google Maps demande un crédit au générique.','Secret défense accepté.'],
+      ['Le doudou reçoit son habilitation confidentiel-défense.','La Ligue des Super-Doudous fait appel.','Cape ajoutée : promotion immédiate.'],
+      ['Hamoud devient identité secrète. Il refuse le costume.','Réponse juridique féline mais correcte.','Clause “la nuit uniquement” enregistrée.'],
+      ['La Terre remercie de ne pas tester ça dans le salon.','Demain refuse toujours d’accélérer.','Responsabilité transférée à une planète.'],
+      ['Le dinosaure invisible proteste.','Le robot savait. C’est déjà beaucoup.','Enfin une réponse honnête.']
+    ];
+
+    const draw=()=>{
+      $('#v30Power').textContent=Math.min(100,power)+'%';$('#v30PowerBar').style.width=Math.min(100,power)+'%';$('#v30HQ').textContent=q+'/7';
+      if(q>=QBOY.length)return inventory();
+      const z=QBOY[q];
+      $('#v30HeroQ').innerHTML='<div class="dialogue"><div class="avatar">🦸🏻‍♂️</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v30hq="'+j+'">'+x+'</button>').join('')+'</div>';
+      $('[data-v30hq]').forEach(b=>b.onclick=()=>{
+        const j=+b.dataset.v30hq;power+=j===2?12:9;vib(5);toast(comments[q][j],2600);q++;setTimeout(draw,520)
+      })
+    };
+
+    function inventory(){
+      $('#v30HeroQ').innerHTML='<div class="eyebrow">ÉQUIPEMENT AVANT DÉPART</div><div class="item-grid">'+gear.map((x,i)=>'<button class="item big" data-v30gear="'+i+'">'+x+'</button>').join('')+'</div><p class="caption">Le masque n’est pas vraiment perdu. Regarde le chat.</p>';
+      $('[data-v30gear]').forEach(b=>b.onclick=()=>{
+        const n=+b.dataset.v30gear;
+        if(n===1&&!$('#v30HeroCat').classList.contains('caught'))return toast('Masque introuvable. Le chat évite soigneusement ton regard.');
+        if(b.disabled)return;b.disabled=true;b.classList.add('selected');got++;power=Math.min(100,power+4);$('#v30Power').textContent=power+'%';$('#v30PowerBar').style.width=power+'%';
+        toast(got===gear.length?'Équipement complet. Le méchant fictif regrette déjà sa journée.':'Objet sécurisé.');
+        if(got===gear.length)setTimeout(finalFight,600)
+      });
+      $('#v30HeroCat').onclick=()=>{$('#v30HeroCat').classList.add('caught');$('#v30HeroCat').textContent='🐈';toast('Masque récupéré. Hamoud affirme qu’il “le gardait”.')}
+    }
+
+    function finalFight(){
+      let step=0;const goal=['shield','jump','beam'];
+      $('#v30Villain').classList.add('active');
+      $('#v30HeroQ').innerHTML='<div class="eyebrow">COMBAT FINAL</div><p class="caption">Le nuage-méchant attaque. Trois actions dans le bon ordre.</p><div class="choices"><button class="choice" data-v30fight="beam">⚡ Rayon</button><button class="choice" data-v30fight="shield">🛡️ Bouclier</button><button class="choice" data-v30fight="jump">🦘 Super-saut</button></div>';
+      $('[data-v30fight]').forEach(b=>b.onclick=()=>{
+        const k=b.dataset.v30fight;
+        if(k!==goal[step]){step=0;toast('Le méchant profite de cette stratégie très créative. Recommence.');return}
+        step++;b.classList.add('good');vib(7);
+        toast(['Bouclier levé.','Super-saut validé.','Rayon final. Beaucoup trop dramatique.'][step-1]);
+        if(step===goal.length){$('#v30Villain').classList.add('defeated');$('#v30HeroBoy').classList.add('victory');setTimeout(()=>complete(13),900)}
+      })
+    }
+    draw()
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
