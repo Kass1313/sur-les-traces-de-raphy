@@ -1440,6 +1440,207 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   uiObserver.observe(app,{childList:true,subtree:true});
 })();
 
+
+/* ===== V25 DEEP FINALE ===== */
+(()=>{
+  const V25_sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+  escapeGame = function(){
+    let stage=0,started=Date.now(),hintTimer=null,hintLevel=0;
+    const tokens=[];
+    const hints=[
+      ['Regarde d’abord le tableau, pas le clavier.','Les quatre cartes racontent des scènes déjà jouées.','Commence par toucher chaque carte du dossier.'],
+      ['Ce symbole a déjà été associé à ce qui comptait, pas à une forme géométrique.','Parmi ○ △ ♥ □, un seul revient dans toute l’histoire.','Choisis ♥.'],
+      ['Le lavabo avait inversé deux choses très simples.','Pense froid / chaud, puis recommence par froid.','Séquence : bleu → rouge → bleu.'],
+      ['Ce n’est pas le jour de votre rencontre.','Plage, sushi, premier baiser. Jour + mois uniquement.','1105.'],
+      ['Regarde le trajet avant de jouer. Tu peux le revoir.','La trace traverse la grille en diagonale puis remonte à droite.','0 → 4 → 8 → 5 → 2.'],
+      ['Classe les souvenirs par date réelle.','Cristaline avant Salon, Salon avant plage, plage avant Marseille.','💧 → 🌙 → 🌊 → ⛪.'],
+      ['Le détail vient du tout premier jour, au magasin de lunettes.','Ce n’est ni les cheveux ni le sourire. C’est un tatouage.','New York.'],
+      ['Le titre du jeu donne presque toute la réponse.','La maison ne collectionne pas des objets : elle suit quelque chose que Raphy laisse.','Les traces que Raphy laisse dans les lieux et les moments.']
+    ];
+
+    screen(
+      top(21)+hero('Trace 22','Le grand escape game','Le verrou central mélange maintenant toute l’histoire. Compte plutôt 8 épreuves que 8 clics.')+
+      '<div class="v25-escape-shell">'+
+        '<div class="v25-escape-top"><span>VERROU CENTRAL</span><span id="v25Stage">1/8</span><span id="v25Time">00:00</span></div>'+
+        '<div class="v25-board-mini" id="v25BoardMini">'+
+          '<button data-board="0"><b>IRM</b><small>symbole reconstruit</small></button>'+
+          '<button data-board="1"><b>LAVABO</b><small>chaud / froid</small></button>'+
+          '<button data-board="2"><b>11/05</b><small>plage</small></button>'+
+          '<button data-board="3"><b>HAMOUD</b><small>trajet impossible</small></button>'+
+        '</div>'+
+        '<div id="v25EscapeBody"></div>'+
+        '<div id="v25EscapeHint"></div>'+
+      '</div>'+skip(21)
+    );
+    wireSkip(21);
+
+    const ticker=setInterval(()=>{
+      const el=$('#v25Time'); if(!el){clearInterval(ticker);return}
+      const s=Math.floor((Date.now()-started)/1000);
+      el.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')
+    },1000);
+
+    let boardSeen=new Set();
+    $('[data-board]').forEach(b=>b.onclick=()=>{
+      boardSeen.add(+b.dataset.board);b.classList.add('seen');
+      toast(['IRM : quelque chose a été mal reconstruit.','Lavabo : deux repères ne disaient pas la vérité.','11/05 : plage, sushi, premier baiser.','Hamoud : il traverse toujours les problèmes au mauvais moment.'][+b.dataset.board],2400);
+      if(boardSeen.size===4&&stage===0)setTimeout(()=>advance('DOSSIER','Le tableau est complet. Le premier verrou s’allume.'),450)
+    });
+
+    function setHint(){
+      clearTimeout(hintTimer);hintLevel=0;
+      const box=$('#v25EscapeHint'); if(box)box.innerHTML='';
+      hintTimer=setTimeout(()=>{
+        const box=$('#v25EscapeHint'); if(!box)return;
+        box.innerHTML='<button class="btn secondary small" id="v25Hint">Tu veux un indice ?</button>';
+        $('#v25Hint').onclick=()=>{
+          const hs=hints[Math.min(stage,hints.length-1)];
+          toast(hs[Math.min(hintLevel,2)],3800);
+          hintLevel++;
+          $('#v25Hint').textContent=hintLevel===1?'Encore ? 😏':hintLevel===2?'Tu abuses un peu 😌':'Indice maximum';
+        }
+      },18000)
+    }
+
+    function advance(token,msg){
+      clearTimeout(hintTimer);tokens.push(token);stage++;
+      const st=$('#v25Stage');if(st)st.textContent=Math.min(stage+1,8)+'/8';
+      toast(msg,3000);vib([8,18]);
+      setTimeout(draw,600)
+    }
+
+    function draw(){
+      const body=$('#v25EscapeBody'); if(!body)return;
+      if(stage>0)$('#v25BoardMini')?.classList.add('collapsed');
+      body.innerHTML='';
+      if(stage===0){
+        body.innerHTML='<div class="v25-lock-intro"><div class="v25-lock-icon">⌁</div><h3>Commence par examiner les quatre cartes.</h3><p>Le verrou refuse d’accepter une réponse tant que le dossier n’a pas été lu.</p></div>';
+      }else if(stage===1){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 2 · SCANNER</div><h3>Quel symbole le dossier associe à ce qui comptait vraiment ?</h3><div class="escape-symbols">'+['○','△','♥','□'].map(x=>'<button class="escape-symbol" data-v25sym="'+x+'">'+x+'</button>').join('')+'</div>';
+        $('[data-v25sym]').forEach(b=>b.onclick=()=>b.dataset.v25sym==='♥'?advance('♥','Oui. Ce symbole était là bien avant le dernier écran.'):toast('Le verrou refuse cette forme.'));
+      }else if(stage===2){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 3 · PLOMBERIE</div><h3>Reproduis la correction du lavabo.</h3><div class="valve-board"><button class="valve blue" data-v25v="B">FROID</button><button class="valve red" data-v25v="R">CHAUD</button></div><div class="code-strip" id="v25ValveStrip"></div>';
+        let seq=[];const goal='BRB';
+        $('[data-v25v]').forEach(b=>b.onclick=()=>{
+          seq.push(b.dataset.v25v);$('#v25ValveStrip').textContent=seq.map(x=>x==='B'?'🔵':'🔴').join(' ');
+          if(seq.length===3){if(seq.join('')===goal)advance('↔','Exact. Même la plomberie finit par devenir un indice.');else{toast('Ça fuit conceptuellement. Recommence.');seq=[];$('#v25ValveStrip').textContent=''}}
+        });
+      }else if(stage===3){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 4 · DATE</div><h3>Premier vrai rendez-vous surprise : jour + mois.</h3><div class="input-row"><input id="v25Date" class="code-input" maxlength="4" inputmode="numeric" placeholder="JJMM"><button class="btn" id="v25DateGo">Valider</button></div><p class="caption">Pas la rencontre au magasin de lunettes.</p>';
+        $('#v25DateGo').onclick=()=>$('#v25Date').value==='1105'?advance('1105','11/05. Plage, sushi, premier baiser. Validé.'):toast('Non. Le sushi refuse encore de témoigner.');
+      }else if(stage===4){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 5 · HAMOUD</div><h3>Observe son trajet. Puis répète-le sans erreur.</h3><div class="paw-grid">'+Array.from({length:9},(_,i)=>'<button class="paw-cell" data-v25paw="'+i+'"></button>').join('')+'</div><button class="btn secondary" id="v25ShowPaw" style="margin-top:12px">Voir le trajet</button>';
+        const goal=[0,4,8,5,2],input=[];let showing=false;
+        $('#v25ShowPaw').onclick=async()=>{
+          if(showing)return;showing=true;input.length=0;
+          for(const n of goal){const el=$('[data-v25paw="'+n+'"]');el.classList.add('flash');await V25_sleep(360);el.classList.remove('flash');await V25_sleep(120)}
+          showing=false;toast('À toi. Hamoud affirme que son trajet était parfaitement normal.')
+        };
+        $('[data-v25paw]').forEach(b=>b.onclick=()=>{
+          if(showing)return;
+          const n=+b.dataset.v25paw,k=input.length;input.push(n);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),180);
+          if(n!==goal[k]){input.length=0;toast('Raté. Hamoud te regarde comme si le problème venait de toi.');return}
+          if(input.length===goal.length)advance('🐈','Trajet reproduit. Le chat connaît encore une porte que personne n’a construite.')
+        });
+      }else if(stage===5){
+        const mem=[['💧','Cristaline'],['🌙','Salon-de-Provence'],['🌊','Plage'],['⛪','Bonne Mère']];
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 6 · CHRONOLOGIE</div><h3>Remets ces quatre souvenirs dans l’ordre.</h3><div class="memory-order">'+mem.map((x,i)=>'<button class="memory-chip" data-v25m="'+i+'">'+x[0]+' '+x[1]+'</button>').join('')+'</div><div class="code-strip" id="v25Chrono"></div>';
+        const arr=[],goal='0123';
+        $('[data-v25m]').forEach(b=>b.onclick=()=>{
+          const n=+b.dataset.v25m;if(arr.includes(n))return;arr.push(n);b.classList.add('selected');$('#v25Chrono').textContent=arr.map(i=>mem[i][0]).join(' → ');
+          if(arr.length===4){if(arr.join('')===goal)advance('CHRONO','Oui. Le dossier ne garde pas seulement des objets : il garde l’ordre dans lequel ils deviennent importants.');else{toast('Presque. La chronologie rembobine.');arr.length=0;$('[data-v25m]').forEach(x=>x.classList.remove('selected'));$('#v25Chrono').textContent=''}}
+        });
+      }else if(stage===6){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 7 · PREMIER JOUR</div><h3>Quel détail Mehdi remarque aussi lors de votre rencontre au magasin de lunettes ?</h3><div class="choices"><button class="choice" data-v25detail="0">Un tatouage New York</button><button class="choice" data-v25detail="1">Une bague verte</button><button class="choice" data-v25detail="2">Un sac avec des étoiles</button></div>';
+        $('[data-v25detail]').forEach(b=>b.onclick=()=>+b.dataset.v25detail===0?advance('NY','Exact. Le premier jour était déjà rempli de détails inutiles… jusqu’à ce qu’ils ne le soient plus.'):toast('Ce détail-là appartient à une autre histoire.'));
+      }else if(stage===7){
+        body.innerHTML='<div class="eyebrow">ÉPREUVE 8 · VERROU CENTRAL</div><div class="v25-token-line">'+tokens.map(x=>'<span>'+x+'</span>').join('')+'</div><h3>Qu’est-ce que la maison essayait réellement de reconstruire ?</h3><div class="choices"><button class="choice" data-v25final="0">Un objet perdu</button><button class="choice" data-v25final="1">Des preuves contre Mehdi</button><button class="choice" data-v25final="2">Les traces que Raphy laisse dans les lieux et les moments</button></div>';
+        $('[data-v25final]').forEach(b=>b.onclick=()=>{
+          if(+b.dataset.v25final!==2)return toast(+b.dataset.v25final===1?'Très tentant. Mais le procès de Mehdi est juste après.':'Non. Rien n’a réellement été volé.');
+          clearInterval(ticker);clearTimeout(hintTimer);
+          body.innerHTML='<div class="v25-escape-win"><div class="v25-unlock">⌁</div><div class="eyebrow">VERROU OUVERT</div><h2>Elle a appris à te reconnaître.</h2><p>Pas avec un score. Pas avec des fragments. Avec les détails qui reviennent partout où tu passes.</p><button class="btn" id="v25EscapeEnd">Ouvrir la porte suivante</button></div>';
+          $('#v25Stage').textContent='8/8';$('#v25EscapeHint').innerHTML='';
+          $('#v25EscapeEnd').onclick=()=>complete(21)
+        });
+      }
+      if(stage<8)setHint()
+    }
+    draw()
+  };
+
+  trial = function(){
+    let p=0,score=0;
+    const dossiers=[
+      ['Récupération de mérite en cave','Pièce A : Raphy trie huit objets. Pièce B : Mehdi apparaît à la fin.','« J’ai apporté une présence structurante. »'],
+      ['Conduite émotionnellement sportive','Plusieurs dos-d’âne ont été détectés par le dos avant le conducteur.','« La route était agressive. »'],
+      ['Plomberie avec confiance aggravante','Les repères chaud/froid ont été inversés avant d’être corrigés.','« Je testais sa capacité d’adaptation. »'],
+      ['Projet Algérie vendu comme offre premium','Deux pièces, cinq enfants, Raphy à la maison et Mehdi incroyablement détendu.','« Il y avait une terrasse. »'],
+      ['Déformation répétée de la notion de “5 minutes”','Plusieurs durées annoncées comme courtes ont développé leur propre fuseau horaire.','« Le temps est relatif. Einstein est avec moi. »'],
+      ['Nomination illégale d’Hamoud au poste de chef de projet','Le chat a eu accès aux outils, aux joints, aux masques et aux décisions.','« Il avait de l’expérience terrain. »']
+    ];
+    screen(top(22)+hero('Trace 23','Le dossier Mehdi','Cette fois, chaque accusation vient avec sa pièce à conviction.')+'<div class="v25-trial card" id="v25Trial"></div>'+skip(22));
+    wireSkip(22);
+
+    const draw=()=>{
+      if(p>=dossiers.length)return sanction();
+      const d=dossiers[p];
+      $('#v25Trial').innerHTML=dots(dossiers.length,p)+'<div class="v25-case-no">DOSSIER '+String(p+1).padStart(2,'0')+'</div><h2>'+d[0]+'</h2><div class="v25-evidence"><b>Pièce à conviction</b><p>'+d[1]+'</p></div><div class="v25-defense"><b>Défense de Mehdi</b><p>'+d[2]+'</p></div><div class="choices"><button class="choice" data-v25verdict="0">Non coupable 😇</button><button class="choice" data-v25verdict="1">Coupable 😌</button><button class="choice" data-v25verdict="2">Très coupable, qu’il arrête de parler 🔨</button></div>';
+      $('[data-v25verdict]').forEach(b=>b.onclick=()=>{
+        const v=+b.dataset.v25verdict;score+=v;
+        toast(v===0?'Mehdi sourit beaucoup trop vite.':v===1?'Il murmure « sorti de son contexte ».':'Le marteau a parlé. Mehdi aussi, mais personne n’écoute.');
+        p++;setTimeout(draw,450)
+      })
+    };
+
+    function sanction(){
+      const verdict=score>=9?'COUPABLE AVEC OPTION RÉCIDIVE':score>=5?'COUPABLE, MAIS PRÉSENTABLE':'LIBÉRÉ SOUS SURVEILLANCE DE RAPHY';
+      $('#v25Trial').innerHTML='<div class="eyebrow">VERDICT</div><h2>'+verdict+'</h2><p>La peine doit rester symbolique. Le tribunal a déjà assez de travail.</p><div class="choices"><button class="choice" data-v25sanction="0">Préparer le petit-déjeuner sans demander où sont les choses</button><button class="choice" data-v25sanction="1">Organiser une soirée complète sans dire « on verra »</button><button class="choice" data-v25sanction="2">Reconnaître une fois que Raphy avait raison sans ajouter « mais »</button></div>';
+      $('[data-v25sanction]').forEach(b=>b.onclick=()=>{
+        const labels=['petit-déjeuner autonome','soirée sans “on verra”','reconnaissance sans “mais”'];
+        S.choices.v25sanction=+b.dataset.v25sanction;save();
+        $('#v25Trial').innerHTML='<div class="eyebrow">SANCTION RETENUE</div><h2>'+labels[+b.dataset.v25sanction]+'</h2><div class="v25-appeal"><p>Mehdi souhaite faire appel.</p><button class="btn secondary" id="v25Appeal">Déposer l’appel — 46 pages × 3 exemplaires</button></div>';
+        $('#v25Appeal').onclick=()=>{$('#v25Appeal').disabled=true;$('#v25Appeal').textContent='Calcul en cours…';setTimeout(()=>{$('#v25Trial').insertAdjacentHTML('beforeend','<div class="card soft" style="margin-top:12px"><b>APPEL RETIRÉ</b><br>Mehdi vient de découvrir le nombre de pages.</div><button class="btn" id="v25TrialEnd" style="margin-top:12px">Classer le dossier</button>');$('#v25TrialEnd').onclick=()=>complete(22)},1000)}
+      })
+    }
+    draw()
+  };
+
+  calm = function(){
+    const beats=[
+      ['HÔPITAL','Le dos décide que la journée avait besoin d’un détour. Rien de glamour. Juste être là.','🏥'],
+      ['RETOUR','Puis la maison. Repos. Pas besoin de transformer chaque moment en événement.','🏠'],
+      ['LE FILM','Qu’est-ce qu’on a fait au Bon Dieu ? passe à l’écran. Et toi, tu ris vraiment.','🎬'],
+      ['48 HEURES','Ce souvenir n’a ni vue incroyable, ni grand discours. C’est exactement pour ça qu’il compte.','🤍']
+    ];
+    let i=0;
+    screen(top(23)+hero('Trace 24','Les 48 heures','Aucune énigme. Touchez simplement les moments quand vous êtes prête.')+'<div class="v25-calm-stage" id="v25Calm"></div><div class="v25-calm-dots" id="v25CalmDots">'+beats.map((_,j)=>'<i class="'+(j===0?'on':'')+'"></i>').join('')+'</div>');
+    const draw=()=>{
+      const b=beats[i];
+      $('#v25Calm').innerHTML='<button class="v25-calm-card" id="v25CalmCard"><span>'+b[2]+'</span><small>'+b[0]+'</small><h2>'+b[1]+'</h2><p>Touche pour continuer.</p></button>';
+      $('#v25CalmCard').onclick=()=>{i++;if(i>=beats.length){$('#v25Calm').innerHTML='<div class="v25-calm-end"><div>☁</div><h2>Les souvenirs tranquilles ont aussi une place ici.</h2><button class="btn" id="v25CalmEnd">Continuer</button></div>';$('#v25CalmDots').innerHTML='';$('#v25CalmEnd').onclick=()=>complete(23);return}$('#v25CalmDots i').forEach((x,j)=>x.classList.toggle('on',j===i));draw()}
+    };draw()
+  };
+
+  unsaid = function(){
+    const notes=[
+      ['TA FORCE','Je vois à quel point tu continues, même quand ce serait plus simple de dire que c’est trop.','✦'],
+      ['TON COURAGE','Pas le spectaculaire. Celui du quotidien. Celui qui ne demande pas qu’on le remarque.','◌'],
+      ['TA PLACE','Tu es importante dans ma vie comme une réalité, pas comme une jolie phrase à mettre à la fin d’un jeu.','⌂'],
+      ['TOI','Je te trouve belle. J’aime ton sourire, ta répartie, ta façon d’être là. Je ne te le dis probablement pas assez.','♡'],
+      ['NOUS','Au milieu des travaux, des rendez-vous, des fous rires, des moments simples et de tout le reste : je nous choisis encore.','∞']
+    ];
+    let opened=new Set();
+    screen(top(24)+hero('Trace 25','Ce qu’on ne dit pas assez','Cinq enveloppes. Aucun score. Ouvre-les dans l’ordre que tu veux.')+'<div class="v25-note-grid">'+notes.map((n,i)=>'<button class="v25-envelope" data-v25note="'+i+'"><span>'+n[2]+'</span><b>'+n[0]+'</b><small>ouvrir</small></button>').join('')+'</div><div id="v25NoteReader"></div>');
+
+    $('[data-v25note]').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.v25note,n=notes[i];opened.add(i);b.classList.add('opened');b.querySelector('small').textContent='lu';
+      $('#v25NoteReader').innerHTML='<div class="v25-note-open card glow"><div class="eyebrow">'+n[0]+'</div><p class="storyline">'+n[1]+'</p>'+(opened.size===notes.length?'<button class="btn" id="v25AllNotes">Il reste une porte</button>':'<p class="caption">'+opened.size+'/5 enveloppes ouvertes</p>')+'</div>';
+      if(opened.size===notes.length)$('#v25AllNotes').onclick=()=>complete(24)
+    })
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
