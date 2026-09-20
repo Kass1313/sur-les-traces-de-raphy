@@ -1,5 +1,5 @@
-const CACHE='raphy-v19-20260920';
-const CORE=['./','./index.html','./styles.bundle.css','./app.bundle.js','./boot-safe.js','./manifest.json','./icon.svg'];
+const CACHE='raphy-v20-stable-core';
+const CORE=['./','./index.html','./styles.bundle.css','./app.core.js','./boot-safe.js','./manifest.json','./icon.svg'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
@@ -27,7 +27,6 @@ async function networkFirst(req){
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
   const url=new URL(e.request.url);
-  const critical=e.request.mode==='navigate'||url.pathname.endsWith('/index.html')||url.pathname.endsWith('/app.bundle.js')||url.pathname.endsWith('/boot-safe.js')||url.pathname.endsWith('/styles.bundle.css');
-  if(critical){e.respondWith(networkFirst(e.request));return}
-  e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return res})))
+  const critical=e.request.mode==='navigate'||/\/(index\.html|app\.core\.js|boot-safe\.js|styles\.bundle\.css)$/.test(url.pathname);
+  e.respondWith(critical?networkFirst(e.request):caches.match(e.request).then(hit=>hit||fetch(e.request)))
 });
