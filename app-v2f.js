@@ -300,4 +300,4 @@ function final(){
   }
 }
 
-if(S.unlocked&&!S.storyDone)opening();
+if(S.unlocked){if(S.storyDone)route(S.current);else opening();}
