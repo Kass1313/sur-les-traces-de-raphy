@@ -1768,21 +1768,53 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
 
   opening = function(){
     screen(
-      '<div class="v27-opening">'+
-        '<div class="v27-envelope" id="v27Envelope"><div class="v27-envelope-back"></div><div class="v27-envelope-flap"></div><div class="v27-envelope-paper"><span>POUR RAPHY</span><small>ouvrir seulement si tu assumes les conséquences</small></div><button class="v27-seal" id="v27Seal">R</button></div>'+
+      '<div class="v27-opening v37-opening">'+
+        '<div class="v27-envelope" id="v27Envelope" role="button" tabindex="0" aria-label="Ouvrir l’enveloppe">'+
+          '<div class="v27-envelope-back"></div>'+
+          '<div class="v27-envelope-flap"></div>'+
+          '<div class="v27-envelope-paper"><span>POUR RAPHY</span><small>ouvrir seulement si tu assumes les conséquences</small></div>'+
+          '<button class="v27-seal" id="v27Seal" type="button" aria-label="Ouvrir l’enveloppe">R</button>'+
+        '</div>'+
+        '<div class="v37-opening-cta" id="v37OpeningCta" hidden>'+
+          '<button class="btn gold v37-open-dossier" id="v27OpenDossier" type="button">Ouvrir le dossier</button>'+
+          '<small>La première trace t’attend.</small>'+
+        '</div>'+
         '<div class="v27-opening-copy"><p>J’avais prévu quelque chose de simple.</p><p>Puis Hamoud a touché un truc.</p></div>'+
         '<div class="mystery-line">« Suis les traces. Certaines sont à toi. D’autres… se souviennent de toi. »</div>'+
       '</div>',
       'centered cinema-screen'
     );
-    $('#v27Seal').onclick=()=>{
-      $('#v27Envelope').classList.add('open');
+
+    let opened=false;
+    const envelope=$('#v27Envelope'),seal=$('#v27Seal'),cta=$('#v37OpeningCta'),openBtn=$('#v27OpenDossier');
+
+    const revealCTA=()=>{
+      if(!cta)return;
+      cta.hidden=false;
+      requestAnimationFrame(()=>cta.classList.add('show'));
+      setTimeout(()=>openBtn?.focus({preventScroll:true}),120)
+    };
+
+    const openEnvelope=()=>{
+      if(opened)return;
+      opened=true;
+      envelope?.classList.add('open','v37-opened');
+      if(seal){seal.disabled=true;seal.classList.add('used')}
       vib([8,20,8]);
-      setTimeout(()=>{
-        $('#v27Seal').outerHTML='<button class="btn gold" id="v27OpenDossier">Ouvrir le dossier</button>';
-        $('#v27OpenDossier').onclick=()=>cinematicStory(0)
-      },650)
-    }
+      setTimeout(revealCTA,520);
+      // fail-safe: the button must always appear even if an animation event is lost
+      setTimeout(revealCTA,1200)
+    };
+
+    seal.onclick=e=>{e.stopPropagation();openEnvelope()};
+    envelope.onclick=e=>{if(!e.target.closest('#v27OpenDossier'))openEnvelope()};
+    envelope.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEnvelope()}};
+    openBtn.onclick=()=>cinematicStory(0);
+
+    // If this screen is restored in an odd visual state, keep it actionable.
+    setTimeout(()=>{
+      if(envelope?.classList.contains('open'))revealCTA()
+    },900)
   };
 
   cinematicStory = function(i){
@@ -3748,6 +3780,8 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   window.RaphyBuild=BUILD;
 })();
 
+window.RaphyBuild='37';
+if(window.RaphyApp)window.RaphyApp.version='37';
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
