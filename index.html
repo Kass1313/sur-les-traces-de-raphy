@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#0c0b12"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Raphy"><meta name="format-detection" content="telephone=no"><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="manifest.json?v=41"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg"><link rel="stylesheet" href="styles.bundle.css?v=41"><title>Sur les traces de Raphy</title></head><body><div id="grain"></div><div id="app" class="app-shell"></div><div id="toast" class="toast" role="status" aria-live="polite"></div><div id="modal" class="modal-layer" hidden></div>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#0c0b12"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Raphy"><meta name="format-detection" content="telephone=no"><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="manifest.json?v=42"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg"><link rel="stylesheet" href="styles.bundle.css?v=42"><title>Sur les traces de Raphy</title></head><body><div id="grain"></div><div id="app" class="app-shell"></div><div id="toast" class="toast" role="status" aria-live="polite"></div><div id="modal" class="modal-layer" hidden></div>
 <script>
 window.__raphyErrors=[];
 window.__raphyRuntimePhase='not-started';
@@ -9,7 +9,7 @@ window.addEventListener('unhandledrejection',function(e){
   window.__raphyErrors.push({message:'Promise: '+String(e.reason&&e.reason.stack||e.reason||'rejection'),source:'promise',line:0,column:0});
 });
 </script>
-<script src="app.runtime.js?v=41"></script>
+<script src="app.runtime.js?v=42"></script>
 <script>
 (function(){
   var root=document.getElementById('app');
@@ -19,11 +19,11 @@ window.addEventListener('unhandledrejection',function(e){
     var phase=window.__raphyRuntimePhase||'unknown';
     var rt=window.__raphyRuntimeError||'';
     var detail=errs.length?errs.map(function(x){return x.message+(x.line?' · ligne '+x.line:'')}).join(' | '):(rt||'Aucune erreur capturée.');
-    root.innerHTML='<main class="screen centered"><div class="lock-mark">⚠️</div><section class="hero"><div class="eyebrow">DIAGNOSTIC V41</div><h1>Le jeu a trébuché.</h1><p>Phase : '+phase+'</p></section><div class="card glow"><p class="caption" style="word-break:break-word">'+detail+'</p><button class="btn" id="diagReload">Recharger</button></div></main>';
+    root.innerHTML='<main class="screen centered"><div class="lock-mark">⚠️</div><section class="hero"><div class="eyebrow">DIAGNOSTIC V42</div><h1>Le jeu a trébuché.</h1><p>Phase : '+phase+'</p></section><div class="card glow"><p class="caption" style="word-break:break-word">'+detail+'</p><button class="btn" id="diagReload">Recharger</button></div></main>';
     document.getElementById('diagReload').onclick=function(){location.reload()};
   }
   setTimeout(showDiag,250);
   setTimeout(showDiag,1200);
 })();
 </script>
-<script>if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=41').catch(()=>{}))</script></body></html>
+<script>if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=42').catch(()=>{}))</script></body></html>
