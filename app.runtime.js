@@ -811,7 +811,7 @@ const CINEMA_STORY=[
     tag:'25 AVRIL 2026 · OPTIQUE',
     title:'Le jour où un magasin de lunettes devient un problème',
     icon:'👓',
-    text:'Mehdi entre pour une raison parfaitement normale. Puis il te voit derrière le comptoir : cheveux framboise, sourire qui accroche immédiatement son attention, répartie déjà chargée. Il remarque aussi ce tatouage New York sur ta cuisse. À partir de là, les lunettes deviennent franchement secondaires.',
+    text:'Mehdi ne vient pas acheter des lunettes. Il passe simplement voir l’équipe qu’il connaît déjà. Puis il te voit : cette magnifique femme, cheveux framboise, sourire qui accroche immédiatement son attention, répartie déjà chargée. Il remarque aussi ce tatouage New York sur ta cuisse. Il était venu parler avec des gens qu’il connaissait. Il repart surtout avec très envie de reparler à toi.',
     lines:['« Tu taquines toujours les clients comme ça ? »','Un regard. Une réponse. Puis encore une.','Il ressort avec beaucoup plus de questions qu’en entrant.'],
     choices:['Le clasher proprement.','Faire semblant de ne pas voir qu’il te regarde.','Le laisser croire deux secondes qu’il a le dernier mot.']
   },
@@ -859,7 +859,7 @@ const CINEMA_STORY=[
     tag:'11 MAI · LA PLAGE',
     title:'Le vrai premier rendez-vous surprise',
     icon:'🌊',
-    text:'Nappe, plage, makis poulet, samoussas. Mehdi a préparé la surprise avec un niveau d’organisation franchement suspect. Puis il t’embrasse. Premier baiser. Celui-là, il demandera probablement qu’on le grave dans les archives.',
+    text:'Nappe, plage, makis poulet, samoussas. Mehdi a préparé la surprise avec un niveau d’organisation franchement suspect. Puis il se rapproche. Et toi : « T’es sûr ? » Une fois. Deux fois. Puis encore… jusqu’à environ dix « t’es sûr ? » réglementaires. Il était sûr. Très sûr. Alors il t’embrasse. Premier baiser. Celui-là, il demandera probablement qu’on le grave dans les archives.',
     lines:['La mer continue comme si de rien n’était.','Le dossier retient surtout la date : 1105.','À partir de là, la plage devient un lieu à vous.'],
     choices:['Laisser le moment exister.','Le taquiner une dernière fois avant.','Lui faire croire qu’il a attendu beaucoup trop longtemps.']
   },
@@ -4123,6 +4123,78 @@ if(window.RaphyApp)window.RaphyApp.version='37';
 
 window.RaphyBuild='41';
 if(window.RaphyApp)window.RaphyApp.version='41';
+
+/* ===== V42 ROMANTIC MOVIE CREDITS ===== */
+(()=>{
+  const BUILD='42';
+
+  credits = function(){
+    const choicesCount=Object.keys(S.choices||{}).length;
+    const doneCount=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+
+    const sections=[
+      ['title','SUR LES TRACES DE RAPHY','Une histoire inspirée de faits beaucoup trop précis.'],
+      ['cast','AVEC','<b>Raphy</b><br>Celle qui devait simplement travailler dans un magasin de lunettes…<br>et qui a fini par changer beaucoup plus que ça.'],
+      ['cast','ET','<b>Mehdi</b><br>Dans le rôle du mec qui passait juste voir une équipe qu’il connaissait…<br>et qui a vu cette magnifique femme.'],
+      ['memory','SCÈNE D’OUVERTURE','<b>25 avril 2026.</b><br><br>Mehdi ne venait pas pour acheter des lunettes.<br>Il passait simplement voir l’équipe qu’il connaissait déjà.<br><br>Et puis il l’a vue.<br><br><strong>Cette magnifique femme.</strong><br><br>Les cheveux framboise. Le sourire. La répartie. Le tatouage New York.<br><br>Il était venu parler avec des gens qu’il connaissait.<br>Il est surtout reparti avec très envie de reparler à <em>elle</em>.<br><br>Des petites piques. Des taquineries. Cette impression qu’il se passait déjà quelque chose, même si personne n’allait encore le dire.<br><br><b>C’est là que la première trace a commencé.</b>'],
+      ['award','MEILLEUR PRÉTEXTE POUR REVENIR','<b>Deux cigarettes.</b><br><br>Exactement deux.<br><br>Puis, quelques heures plus tard :<br><br><strong>Deux bouteilles de Cristaline.</strong><br><br>Personne ne sait encore officiellement si c’était du remboursement, de la séduction ou le début d’un système économique très étrange.'],
+      ['memory','MEILLEUR APPEL TÉLÉPHONIQUE','Celui passé au magasin juste pour continuer à parler.<br><br>Puis Snapchat.<br><br>Parce qu’apparemment, raccrocher n’était déjà plus vraiment une option.'],
+      ['memory','4 MAI · SALON-DE-PROVENCE','Un restaurant. Des histoires. Des voyages. Les États-Unis. La clavicule, la cheville, la pizza avec des SDF…<br><br>Puis une balade.<br>Une balançoire en forme de pneu.<br>Le ciel au-dessus.<br><br>Et évidemment…<br><br><strong>la police.</strong><br><br>Parce qu’une soirée parfaitement normale aurait été beaucoup trop simple.<br><br>Alors la conversation a simplement continué dans la voiture.'],
+      ['heart','MEILLEUR PREMIER VRAI RENDEZ-VOUS','<b>11 mai 2026.</b><br><br>Une surprise.<br>Une plage.<br>Une nappe.<br>Des makis au poulet.<br>Des samoussas.<br><br>Une soirée préparée juste pour elle.<br><br>Puis Mehdi se rapproche.<br><br>Et Raphy :<br><strong>« T’es sûr ? »</strong><br><strong>« T’es sûr ? »</strong><br><strong>« T’es sûr ? »</strong><br><br>Encore. Et encore.<br><br><b>Environ 10 « t’es sûr ? » réglementaires.</b><br><br>Comme si Mehdi allait soudain répondre : « Ah non attends, maintenant que tu le dis… »<br><br>Mais il était sûr.<br><b>Très sûr.</b><br><br>Alors il l’a embrassée.<br><br>Et quatre petits chiffres ont pris une autre importance :<br><br><strong>1105</strong><br><br>Ce n’était plus seulement une date.<br>C’était une trace. ❤️'],
+      ['memory','MEILLEURS DÉCORS SECONDAIRES','Les parkings de supermarché où « encore cinq minutes » pouvait durer beaucoup plus longtemps.<br><br>La voiture, quand rentrer était moins intéressant que continuer à parler.<br><br>Les autres plages.<br><br>Le jacuzzi illuminé, juste vous deux, quand le reste du monde pouvait attendre dehors.'],
+      ['memory','LA SURPRISE CHANGE DE CÔTÉ','<b>Marseille.</b><br><br>Mehdi ne connaît pas la destination avant d’y arriver.<br><br>Le petit train.<br>La montée.<br>La ville qui s’ouvre.<br>La Bonne Mère.<br><br>Et une photo qui devient un point de repère parmi tous les autres.'],
+      ['tender','MEILLEUR SOUVENIR QUI N’AVAIT RIEN D’EXTRAORDINAIRE','<b>Les 48 heures.</b><br><br>L’hôpital.<br>Le dos.<br>Le retour à la maison.<br>Le repos.<br><br><em>Qu’est-ce qu’on a fait au Bon Dieu ?</em><br><br>Et ton rire.<br><br>Pas de plage. Pas de surprise spectaculaire.<br><br>Juste être là.<br><br>Et finalement, c’est peut-être ça aussi aimer quelqu’un : trouver précieux un moment qui, pour tout le monde, aurait été une journée ordinaire.'],
+      ['award','PRIX DU PREMIER GRAND FOUS RIRE','<strong>La dinde laquée.</strong><br><br>Aucune explication supplémentaire ne sera fournie.'],
+      ['chaos','DIRECTION DES TRAVAUX','<b>Raphy</b><br><br>Assistant très sûr de lui : <b>Mehdi</b><br><br>Une cave. De la peinture. Un lavabo. Une batterie. Une voiture.<br><br>Plusieurs décisions prises avec beaucoup de confiance.<br><br>Certaines étaient même correctes.'],
+      ['chaos','CONSULTANT NON SOLLICITÉ','<strong>Hamoud</strong><br><br>Spécialités :<br>voler des pièces,<br>marcher dans la peinture,<br>laisser des traces sur une voiture propre,<br>observer les problèmes<br><br>et ne proposer absolument aucune solution.'],
+      ['comedy','MEILLEUR PROJET IMMOBILIER','<b>L’Algérie selon Mehdi™.</b><br><br>Deux pièces.<br>Cinq enfants.<br>Raphy à la maison.<br>Mehdi extrêmement satisfait du contrat.<br><br>Projet refusé après étude approfondie par la principale intéressée.<br><br>Hamoud envisage toujours de prendre 12 % de commission.'],
+      ['stats','ÉTAT DU DOSSIER','<div class="v42-stats"><span><b>'+doneCount+'</b><small>traces terminées</small></span><span><b>'+choicesCount+'</b><small>choix mémorisés</small></span></div>'],
+      ['tender','ET AU MILIEU DE TOUT ÇA…','Il y a eu des rendez-vous.<br><br>Des douleurs. Des journées simples. Des moments compliqués.<br><br>Des cafés. Des travaux. Des voitures. Des enfants qui ne veulent pas dormir. Des conversations qui durent plus longtemps que prévu.<br><br>Et plein de détails qu’on aurait pu oublier.<br><br>Mais je crois que c’est justement ça que je voulais te montrer avec ce jeu.'],
+      ['heart','CE QUE JE VOULAIS TE DIRE','Je ne suis pas amoureux uniquement des grands moments.<br><br>Je suis amoureux de tout ce qu’il y a entre eux.<br><br>De tes réactions.<br>De tes blagues.<br>De ton sourire.<br>De ta répartie.<br><br>De ta force quand les choses sont difficiles.<br><br>De ton courage, même quand toi tu ne le vois peut-être pas comme du courage.<br><br>Et de toutes ces petites traces que tu laisses derrière toi sans même t’en rendre compte.'],
+      ['tender','POUR LA SUITE','Je ne sais pas où seront les prochaines.<br><br>Peut-être dans une autre ville.<br>Peut-être sur une plage.<br>Peut-être dans une voiture garée quelque part pendant qu’on parle beaucoup trop longtemps.<br><br>Peut-être juste à la maison, pendant une journée qui n’avait rien de spécial au départ.<br><br>Mais j’espère qu’il y en aura encore énormément.'],
+      ['heart','SI JE DEVAIS REFAIRE LE CHEMIN…','Du magasin de lunettes<br>aux deux cigarettes,<br>aux deux Cristaline,<br>à Salon,<br>au 11 mai,<br>à Marseille,<br>aux moments faciles<br>et aux moments beaucoup moins faciles…<br><br><b>je suivrais encore les mêmes traces.</b><br><br><strong>Les tiennes.</strong>'],
+      ['end','RAPHY & MEHDI','<b>Saison 1 : toujours en production.</b><br><br>Aucune date de fin annoncée.<br><br><span class="v42-big-heart">❤️</span><br><br><strong>FIN DU JEU</strong><br><small>Pas de l’histoire.</small>']
+    ];
+
+    screen(
+      '<div class="v42-credits">'+
+        '<div class="v42-credit-stars"></div>'+
+        '<div class="v42-credit-roll" id="v42Roll">'+
+          sections.map((s,i)=>'<section class="v42-credit-section '+s[0]+'" style="--i:'+i+'"><small>'+s[1]+'</small><div class="v42-credit-body">'+s[2]+'</div></section>').join('')+
+        '</div>'+
+        '<div class="v42-credit-controls">'+
+          '<button class="btn" id="v42Pause">Pause</button>'+
+          '<button class="btn secondary" id="v42Speed">Accélérer</button>'+
+          '<button class="btn secondary" id="v42Replay">Rejouer</button>'+
+        '</div>'+
+      '</div>',
+      'v42-credits-screen'
+    );
+
+    const roll=$('#v42Roll');
+    let paused=false,fast=false;
+    $('#v42Pause').onclick=()=>{
+      paused=!paused;
+      roll.style.animationPlayState=paused?'paused':'running';
+      $('#v42Pause').textContent=paused?'Reprendre':'Pause'
+    };
+    $('#v42Speed').onclick=()=>{
+      fast=!fast;
+      roll.classList.toggle('fast',fast);
+      $('#v42Speed').textContent=fast?'Ralentir':'Accélérer';
+      // restarting the animation is intentional when speed mode changes
+      roll.style.animation='none';
+      void roll.offsetHeight;
+      roll.style.animation='';
+      if(paused)roll.style.animationPlayState='paused'
+    };
+    $('#v42Replay').onclick=replay
+  };
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
