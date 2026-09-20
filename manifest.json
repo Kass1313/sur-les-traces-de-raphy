@@ -1,13 +1,18 @@
 {
+  "id": "./",
   "name": "Sur les traces de Raphy",
   "short_name": "Raphy",
-  "start_url": "./",
+  "description": "Une aventure interactive créée pour Raphy.",
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0b0a10",
   "theme_color": "#0b0a10",
-  "description": "Une aventure interactive créée pour Raphy.",
+  "categories": ["entertainment", "games", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
     {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ]
