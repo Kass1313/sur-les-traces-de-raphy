@@ -3719,6 +3719,15 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       pointerId=null;progress.style.setProperty('--p','0deg');heart.style.transform='';$('#v36HeartCaption').textContent='Maintiens le cœur.'
     };
     heart.onpointerdown=begin;heart.onpointerup=cancel;heart.onpointercancel=cancel;
+    setTimeout(()=>{
+      if(revealed||!heart?.isConnected)return;
+      const fallback=document.createElement('button');
+      fallback.className='btn secondary v40-final-fallback';
+      fallback.id='v40FinalFallback';
+      fallback.textContent='Ouvrir la lettre';
+      fallback.onclick=()=>{if(revealed)return;revealed=true;down=false;cancelAnimationFrame(raf);reveal()};
+      heart.parentElement?.append(fallback)
+    },4500);
 
     function reveal(){
       const callback=[];
@@ -4028,7 +4037,7 @@ if(window.RaphyApp)window.RaphyApp.version='37';
       const paint=()=>{
         entered=(input.value||entered).replace(/\D/g,'').slice(0,4);
         input.value=entered;
-        $(' #v39DateDisplay i'.trim()).forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $('#v39DateDisplay i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
         send.disabled=entered.length!==4;
         $('#v39DateError').textContent=''
       };
@@ -4112,6 +4121,8 @@ if(window.RaphyApp)window.RaphyApp.version='37';
   window.RaphyBuild=BUILD;
 })();
 
+window.RaphyBuild='40';
+if(window.RaphyApp)window.RaphyApp.version='40';
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
