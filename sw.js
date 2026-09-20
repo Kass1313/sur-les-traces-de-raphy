@@ -1,4 +1,4 @@
-const CACHE='raphy-v13-20260920';
+const CACHE='raphy-v14-20260920';
 const ASSETS=['./','./index.html','./styles.css','./enhancements.css','./enhancements-v2.css','./enhancements-v3.css','./enhancements-v4.css','./app.js','./app-v2a.js','./app-v2b.js','./app-v2c.js','./app-v2d.js','./app-v2e.js','./app-v2f.js','./app-v2g.js','./manifest.json','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()]))});
