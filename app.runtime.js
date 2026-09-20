@@ -2800,6 +2800,290 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V32 HORROR & CALLBACKS ===== */
+(()=>{
+  const delay=ms=>new Promise(r=>setTimeout(r,ms));
+  const fearReduced=()=>document.documentElement.classList.contains('raphy-fear-reduced');
+
+  horror = function(){
+    let phase=0,clues=0,marks=new Set(),ended=false,calmed=false,heartbeat=0;
+    const callbackLines=[];
+    if(S.choices.v31_sink==='reversed')callbackLines.push('🔴/🔵');
+    if(S.choices.v31_car)callbackLines.push('🐾');
+    if(S.choices.v31_paint)callbackLines.push('🎨');
+    if(S.choices.v31_cellar)callbackLines.push('📦');
+
+    screen(
+      top(18)+hero('Trace 19','La pièce qui bourdonne','La lumière ne révèle pas seulement ce qui est dans la pièce. Elle révèle ce que la maison a retenu.')+
+      '<div class="v32-horror" id="v32Horror">'+
+        '<div class="v32-wall-texture"></div>'+
+        '<div id="v32Moths" class="v32-moths"></div>'+
+        '<button class="v32-mark m1" data-v32mark="triangle">△</button>'+
+        '<button class="v32-mark m2" data-v32mark="date">1105</button>'+
+        '<button class="v32-mark m3" data-v32mark="heart">♥</button>'+
+        '<button class="v32-mark m4" data-v32mark="paw">🐾</button>'+
+        '<div class="v32-flashlight" id="v32Flash"></div>'+
+        '<div class="v32-shadow-person" id="v32Shadow"></div>'+
+        '<div class="v32-door-shape" id="v32Door"></div>'+
+        '<button class="v32-hamoud" id="v32Hamoud">🐈</button>'+
+        '<button class="btn small secondary v32-altlamp" id="v32AltLamp">Autre lampe</button>'+
+        '<div class="v32-heartbeat" id="v32Heartbeat"></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v32HorrorPhase">1/2 · marques</span><span id="v32HorrorCount">0/4</span><span id="v32HorrorNoise">bruit : faible</span></div><p class="caption" id="v32HorrorCopy">Déplace la lumière. Trouve les quatre marques. Tu peux passer la scène à tout moment.</p><div id="v32CallbackStrip" class="v32-callback-strip">'+callbackLines.map(x=>'<span>'+x+'</span>').join('')+'</div></div>'+skip(18),
+      'horror'
+    );
+    wireSkip(18);
+
+    const mothCount=fearReduced()?5:18;
+    for(let i=0;i<mothCount;i++){
+      const m=document.createElement('i');
+      m.className='v32-moth';
+      m.style.left=(4+Math.random()*92)+'%';
+      m.style.top=(10+Math.random()*72)+'%';
+      m.style.setProperty('--dx',(-60+Math.random()*120)+'px');
+      m.style.setProperty('--dy',(-40+Math.random()*90)+'px');
+      m.style.setProperty('--dur',(2.4+Math.random()*3.8)+'s');
+      $('#v32Moths').append(m)
+    }
+
+    const stage=$('#v32Horror'),flash=$('#v32Flash');
+    const move=e=>{
+      const r=stage.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;
+      flash.style.setProperty('--x',x+'%');flash.style.setProperty('--y',y+'%');
+      stage.style.setProperty('--mx',x+'%');stage.style.setProperty('--my',y+'%')
+    };
+    stage.onpointermove=move;stage.onpointerdown=move;
+
+    $('#v32Hamoud').onclick=()=>{
+      toast(phase===0?'Hamoud fixe le mur. Pas la porte. Le mur. Très rassurant.':'Hamoud refuse d’entrer dans le couloir. Pour une fois, écoute peut-être le chat.')
+    };
+
+    $('#v32AltLamp').onclick=()=>{
+      calmed=true;$('#v32Moths').classList.add('lured');$('#v32HorrorNoise').textContent='bruit : déplacé';
+      toast('Les ailes changent de cible. Pas toutes. La maison garde un petit budget malaise.')
+    };
+
+    $('[data-v32mark]').forEach(el=>el.onclick=()=>{
+      if(el.classList.contains('found'))return;
+      el.classList.add('found');marks.add(el.dataset.v32mark);clues=marks.size;vib(8);
+      $('#v32HorrorCount').textContent=clues+'/4';
+      const map={
+        triangle:'Un triangle. Le scanner avait déjà commencé à mélanger les symboles.',
+        date:'1105. La maison connaît la date, elle aussi.',
+        heart:'Le cœur revient encore. Pas comme décoration.',
+        paw:S.choices.v31_car?'Une patte. Exactement comme celle laissée sur la voiture.':'Une patte. Hamoud refuse toute responsabilité.'
+      };
+      toast(map[el.dataset.v32mark],2900);
+      if(clues===4)setTimeout(startCorridor,700)
+    });
+
+    const scare1=setTimeout(()=>{
+      if(!stage?.isConnected||ended||fearReduced())return;
+      heartbeat++;$('#v32Shadow').classList.add('show');$('#v32HorrorNoise').textContent='bruit : derrière';
+      vib([12,34,12]);toast('Quelque chose passe derrière la lumière. Hamoud est pourtant devant.');
+      setTimeout(()=>$('#v32Shadow')?.classList.remove('show'),800)
+    },4200);
+
+    const scare2=setTimeout(()=>{
+      if(!stage?.isConnected||ended||fearReduced())return;
+      const bug=document.createElement('div');bug.className='v32-screen-bug';bug.textContent='•';
+      stage.append(bug);bug.animate([{transform:'translate(0,0) scale(.5)',opacity:.25},{transform:'translate(-62vw,58vh) scale(3)',opacity:.95}],{duration:1500,fill:'forwards'});
+      setTimeout(()=>bug.remove(),1700)
+    },6800);
+
+    async function startCorridor(){
+      if(phase!==0)return;phase=1;clearTimeout(scare1);clearTimeout(scare2);
+      $('#v32HorrorPhase').textContent='2/2 · couloir';
+      $('#v32HorrorCount').textContent='porte ?';
+      $('#v32HorrorCopy').textContent='La porte est apparue. Traverse le couloir sans regarder directement l’ombre.';
+      $('#v32Door').classList.add('visible');
+      $('#v32Horror').classList.add('corridor');
+      await delay(400);
+      $('#v32Horror').insertAdjacentHTML('beforeend',
+        '<div class="v32-corridor-game" id="v32Corridor"><div class="v32-gaze-zone"></div><div class="v32-corridor-runner" id="v32Runner">●</div><div class="v32-corridor-shadow" id="v32CorridorShadow"></div></div>'+
+        '<button class="btn v32-walk-btn" id="v32Walk">Avancer</button>'
+      );
+      let pos=0,shadow=78,safe=true,start=performance.now();
+      const loop=t=>{
+        if(!$('#v32Walk')?.isConnected||ended)return;
+        const ph=((t-start)%2400)/2400;
+        shadow=50+Math.sin(ph*Math.PI*2)*34;
+        $('#v32CorridorShadow').style.left=shadow+'%';
+        safe=Math.abs(shadow-pos)>23||fearReduced();
+        $('#v32Walk').classList.toggle('danger',!safe);
+        requestAnimationFrame(loop)
+      };requestAnimationFrame(loop);
+
+      $('#v32Walk').onclick=()=>{
+        if(!safe){
+          pos=Math.max(0,pos-7);vib([18,28,18]);toast('Tu as regardé au mauvais moment. Le couloir paraît plus long.');
+        }else{
+          pos+=18;toast(pos>=90?'La poignée est juste là.':'Un pas. Le bruit reste derrière.');
+        }
+        $('#v32Runner').style.left=Math.min(90,pos)+'%';
+        if(pos>=90)finish()
+      }
+    }
+
+    function finish(){
+      if(ended)return;ended=true;
+      S.choices.v32_horror={calmed,callbacks:callbackLines.length,fearReduced:fearReduced()};save();
+      $('#v32Horror').classList.add('exit');
+      toast(calmed?'La porte s’ouvre. L’autre lampe reste allumée toute seule.':'La porte s’ouvre. Les ailes restent derrière. Presque.');
+      setTimeout(()=>complete(18),900)
+    }
+  };
+
+  houseGame = function(){
+    let round=0,found=0,eyesClosed=false,wrong=0;
+    const callbacks={
+      paint:!!S.choices.v31_paint,
+      sink:S.choices.v31_sink==='reversed',
+      car:!!S.choices.v31_car,
+      cellar:!!S.choices.v31_cellar
+    };
+    const rounds=[
+      {change:'chair',label:'La chaise a avancé. Rien de spectaculaire. C’est pire comme ça.'},
+      {change:'frame',label:'Le cadre s’est retourné. Il n’y a rien derrière. Évidemment.'},
+      {change:'lamp',label:'La lampe reste allumée alors que son interrupteur est éteint.'},
+      {change:'door',label:'Cette porte n’existait pas il y a dix secondes.'},
+      {change:'paint',label:callbacks.paint?'Une trace de peinture identique au chantier vient d’apparaître.':'Une trace de peinture apparaît sans explication.'},
+      {change:'cat',label:callbacks.car?'Le portrait d’Hamoud porte exactement la même patte que la voiture.':'Pourquoi Hamoud est-il dans un portrait officiel ?'}
+    ];
+
+    screen(
+      top(19)+hero('Trace 20','La maison impossible','Observe la pièce. Ferme les yeux. Rouvre. Un seul détail change à la fois… jusqu’à ce que la maison commence à tricher.')+
+      '<div class="v32-house" id="v32House">'+
+        '<div class="v32-room-back"></div>'+
+        '<button class="v32-room-object chair" data-v32room="chair">🪑</button>'+
+        '<button class="v32-room-object frame" data-v32room="frame">🖼️</button>'+
+        '<button class="v32-room-object lamp" data-v32room="lamp">💡</button>'+
+        '<button class="v32-room-object door" data-v32room="door">🚪</button>'+
+        '<button class="v32-room-object paint" data-v32room="paint">•</button>'+
+        '<button class="v32-room-object cat" data-v32room="cat">🐈</button>'+
+        '<div class="v32-sink-callback '+(callbacks.sink?'on':'')+'">🔴　🔵</div>'+
+        '<div class="v32-box-callback '+(callbacks.cellar?'on':'')+'">📦</div>'+
+        '<div class="v32-blackout" id="v32Blackout"></div>'+
+        '<div class="v32-room-whisper" id="v32Whisper">tu as déjà vu ça</div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v32HouseRound">0/6 anomalies</span><span id="v32HouseStatus">observe</span><span>erreurs <b id="v32HouseWrong">0</b></span></div><button class="btn" id="v32CloseEyes">Fermer les yeux</button><p class="caption" id="v32HouseCopy">Regarde bien avant de fermer les yeux. La maison adore les clics au hasard.</p></div>'+skip(19)
+    );
+    wireSkip(19);
+
+    $('[data-v32room]').forEach(b=>b.onclick=()=>{
+      if(eyesClosed||round===0)return toast('Ferme d’abord les yeux. Pour une fois, c’est réellement la consigne.');
+      const target=rounds[round-1].change;
+      if(b.dataset.v32room===target&&!b.classList.contains('found')){
+        b.classList.add('found');found++;$('#v32HouseRound').textContent=found+'/6 anomalies';$('#v32HouseStatus').textContent='trouvée';vib(6);
+        toast(rounds[round-1].label,3000);
+        if(found===3)$('#v32Whisper').classList.add('show');
+        if(found===6)return finale()
+      }else{
+        wrong++;$('#v32HouseWrong').textContent=wrong;vib(5);
+        toast(wrong===1?'Non. Ce détail était déjà bizarre avant.':'La maison note tes accusations sans fondement.')
+      }
+    });
+
+    $('#v32CloseEyes').onclick=async()=>{
+      if(round>=rounds.length)return toast('Tu as déjà vu assez de choses bouger pour ce soir.');
+      if(round>0&&!$('[data-v32room="'+rounds[round-1].change+'"]').classList.contains('found'))return toast('Trouve d’abord ce qui a changé.');
+      eyesClosed=true;$('#v32HouseStatus').textContent='yeux fermés';$('#v32Blackout').classList.add('on');vib(4);
+      await delay(650);
+      apply(rounds[round].change);round++;
+      if(round===4&&!fearReduced()){$('#v32House').classList.add('breathing');setTimeout(()=>$('#v32House')?.classList.remove('breathing'),1400)}
+      $('#v32Blackout').classList.remove('on');eyesClosed=false;$('#v32HouseStatus').textContent='quelque chose a changé'
+    };
+
+    function apply(type){
+      const el=$('[data-v32room="'+type+'"]');el.classList.add('changed');
+      if(type==='chair')el.classList.add('moved');
+      if(type==='frame')el.classList.add('turned');
+      if(type==='lamp')el.classList.add('haunted');
+      if(type==='door')el.classList.add('wrong-door');
+      if(type==='paint')el.classList.add('painted');
+      if(type==='cat'){el.innerHTML='🖼️<span>🐈</span>';el.classList.add('official')}
+    }
+
+    function finale(){
+      S.choices.v32_house={wrong,callbacks:Object.values(callbacks).filter(Boolean).length};save();
+      $('#v32CloseEyes').disabled=true;$('#v32HouseStatus').textContent='…';
+      $('#v32HouseCopy').textContent='La pièce remet presque tout à sa place. Presque.';
+      setTimeout(()=>{
+        $('#v32Blackout').classList.add('on');
+        setTimeout(()=>{
+          $('[data-v32room]').forEach(x=>x.classList.remove('changed','moved','turned','haunted','wrong-door','painted'));
+          $('#v32Blackout').classList.remove('on');
+          $('#v32Whisper').textContent='elle ne copie pas les pièces. elle copie les traces.';
+          $('#v32Whisper').classList.add('final');
+          toast('Tout est revenu. Sauf le portrait d’Hamoud. Le portrait refuse.');
+          setTimeout(()=>complete(19),1300)
+        },650)
+      },500)
+    }
+  };
+
+  unknown = function(){
+    const firstChoice=['tu l’as clashé','tu as fait comme si tu n’avais rien remarqué','tu lui as laissé croire qu’il avait le dernier mot'][S.choices.story0??0];
+    const alg=S.choices.algeria;
+    const remembered=[];
+    if(S.choices.v31_sink==='reversed')remembered.push('le rouge et le bleu');
+    if(S.choices.v31_car)remembered.push('la patte laissée sur la voiture');
+    if(S.choices.v31_paint)remembered.push('les retouches du mur');
+    if(S.choices.v32_horror)remembered.push('le couloir');
+    if(S.choices.v32_house)remembered.push('la pièce qui changeait');
+
+    screen(
+      top(20)+hero('Trace 21','Numéro masqué','Pas de vrai appel. Mais l’écran vient de récupérer beaucoup trop de détails.')+
+      '<div class="incoming-call" id="callScreen"><div class="call-static"></div><div class="caller-orb">?</div><div class="caller-name">NUMÉRO MASQUÉ</div><div class="caller-sub">appel entrant · source inconnue</div><div class="call-actions"><button class="call-decline" id="decline">✕</button><button class="call-accept" id="accept">✓</button></div></div><div id="afterCall"></div>'+skip(20)
+    );
+    wireSkip(20);
+    $('#accept').onclick=()=>openThread(false);
+    $('#decline').onclick=()=>{vib([18,28,18]);toast('Tu peux refuser l’appel. Le message, lui, était déjà là.');setTimeout(()=>openThread(true),700)};
+
+    function openThread(refused){
+      $('#callScreen').outerHTML='<div class="phone phone-dark"><div class="phone-top"><span>19:47</span><span>MASQUÉ</span></div><div id="msgs"><div class="msg in">'+(refused?'Refuser était logique.':'Tu as décroché.')+'</div><div class="typing" id="typing"><i></i><i></i><i></i></div></div><div id="phoneAction"></div></div>';
+      const messages=[
+        'Je me souviens du magasin de lunettes.',
+        'Dans ta version, '+firstChoice+'.',
+        'Je me souviens des deux bouteilles. Du pneu. De la plage.',
+        remembered.length?'Je me souviens aussi de '+remembered.slice(0,3).join(', ')+'.':'Je me souviens des détails que tu pensais inutiles.',
+        alg===1?'Et de cette offre immobilière où Mehdi devait finalement gérer cinq enfants.':alg===0?'Et tu as refusé la brochure Algérie sans négocier les frais de dossier.':'Et la brochure immobilière reste juridiquement discutable.',
+        'Mais il manque une vérification.'
+      ];
+      let k=0;
+      const sendNext=()=>{
+        if(k>=messages.length)return askDate();
+        const t=$('#typing');if(!t)return;
+        t.insertAdjacentHTML('beforebegin','<div class="msg in reveal-msg">'+messages[k]+'</div>');
+        k++;setTimeout(sendNext,620+Math.random()*320)
+      };
+      setTimeout(sendNext,650)
+    }
+
+    function askDate(){
+      $('#typing')?.remove();
+      $('#msgs').insertAdjacentHTML('beforeend','<div class="msg in">Premier vrai rendez-vous surprise. Jour + mois. Seulement ce que vous savez vraiment.</div>');
+      $('#phoneAction').innerHTML='<div class="input-row" style="margin-top:12px"><input id="maskedDate" class="code-input" maxlength="4" inputmode="numeric" placeholder="JJMM"><button class="btn" id="maskedSend">Envoyer</button></div>';
+      const send=()=>{
+        if($('#maskedDate').value!=='1105')return toast('Non. Le sushi refuse de confirmer cette chronologie.');
+        $('#msgs').insertAdjacentHTML('beforeend','<div class="msg out">1105</div>');$('#phoneAction').innerHTML='';
+        setTimeout(()=>{
+          $('#msgs').insertAdjacentHTML('beforeend','<div class="msg in reveal-msg">Bien.</div><div class="msg in reveal-msg">Tu pensais chercher ce que la maison avait caché.</div>');
+          setTimeout(()=>{
+            $('#msgs').insertAdjacentHTML('beforeend','<div class="msg in reveal-msg">Elle n’a rien caché.</div><div class="msg in reveal-msg">Elle a appris à te reconnaître à travers ce que tu laisses derrière toi.</div><div class="msg in reveal-msg final-mask-msg">Des traces.</div>');
+            $('#phoneAction').innerHTML='<button class="btn danger" id="hangMasked">Raccrocher</button>';vib([20,60,20]);
+            $('#hangMasked').onclick=()=>{screen('<div class="black-transition"><div class="glitch-word">TRACE</div><p>Une serrure vient de s’ouvrir quelque part dans la maison.</p><button class="btn secondary" id="toEscape">Trouver laquelle</button></div>','centered horror');$('#toEscape').onclick=()=>complete(20)}
+          },1100)
+        },800)
+      };
+      $('#maskedSend').onclick=send;
+      $('#maskedDate').onkeydown=e=>{if(e.key==='Enter')send()}
+    }
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
