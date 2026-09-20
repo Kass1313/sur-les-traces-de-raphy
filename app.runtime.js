@@ -2493,6 +2493,313 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V31 WORKS & CAR IMMERSION ===== */
+(()=>{
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+  cellarGame = function(){
+    const items=[
+      ['Câbles “au cas où”','cables','🔌','GARAGE'],
+      ['Décorations','deco','🎄','DÉCO'],
+      ['Pot de peinture suspect','paint','🎨','TRAVAUX'],
+      ['Objet dont personne ne connaît la fonction','mystery','🧩','MYSTÈRE'],
+      ['Outils','tools','🪛','TRAVAUX'],
+      ['Carton vide qu’on garde quand même','box','📦','GARAGE'],
+      ['Encore des câbles','cables','🔌','GARAGE'],
+      ['Hamoud dans un carton','cat','🐈','MYSTÈRE']
+    ];
+    let selected=null,done=0,streak=0,bonus=25,timer=null;
+    screen(
+      top(5)+hero('Trace 06','La cave de l’enfer','Éclaire, sélectionne, range. Le vrai danger : entendre Mehdi dire « on a bien géré » à la fin.')+
+      '<div class="v31-cellar" id="v31Cellar">'+
+        '<div class="v31-cellar-light" id="v31CellarLight"></div>'+
+        '<div class="v31-shelves"></div>'+
+        '<div class="v31-cellar-items">'+items.map((x,i)=>'<button class="v31-cellar-item" data-v31ci="'+i+'" style="--x:'+(8+(i%4)*23)+'%;--y:'+(24+Math.floor(i/4)*38)+'%"><span>'+x[2]+'</span><b>'+x[0]+'</b></button>').join('')+'</div>'+
+        '<div class="v31-cellar-mehdi">MEHDI<br><small>arrive à 98%</small></div>'+
+      '</div>'+
+      '<div class="v31-bins">'+['GARAGE','DÉCO','TRAVAUX','MYSTÈRE'].map(x=>'<button data-v31bin="'+x+'">'+x+'</button>').join('')+'</div>'+
+      '<div class="card"><div class="hud"><span id="v31CellDone">0/8 rangés</span><span id="v31Streak">série 0</span><span id="v31Bonus">bonus 25s</span></div><p class="caption">Bouge le pointeur dans la cave pour déplacer la lampe. Puis touche un objet et son bac.</p></div>'+skip(5)
+    );
+    wireSkip(5);
+    const room=$('#v31Cellar'),light=$('#v31CellarLight');
+    room.onpointermove=e=>{
+      const r=room.getBoundingClientRect();
+      light.style.setProperty('--lx',((e.clientX-r.left)/r.width*100)+'%');
+      light.style.setProperty('--ly',((e.clientY-r.top)/r.height*100)+'%')
+    };
+    timer=setInterval(()=>{
+      if(!$('#v31Bonus'))return clearInterval(timer);
+      bonus=Math.max(0,bonus-1);$('#v31Bonus').textContent=bonus?'bonus '+bonus+'s':'bonus expiré'
+    },1000);
+
+    $('[data-v31ci]').forEach(b=>b.onclick=()=>{
+      if(b.disabled)return;
+      $('[data-v31ci]').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');selected=+b.dataset.v31ci;
+      if(items[selected][1]==='cat')toast('Hamoud vient de s’auto-déclarer “objet de direction”.')
+    });
+    $('[data-v31bin]').forEach(bin=>bin.onclick=()=>{
+      if(selected===null)return toast('Choisis d’abord un objet. Sinon tu ranges le concept, pas la cave.');
+      const item=items[selected],ok=bin.dataset.v31bin===item[3];
+      if(!ok){streak=0;$('#v31Streak').textContent='série 0';return toast(item[1]==='cat'?'Hamoud refuse. Il souhaite “MYSTÈRE” pour des raisons fiscales.':'Non. La cave vient de faire un petit bruit de désapprobation.')}
+      const b=$('[data-v31ci="'+selected+'"]');b.disabled=true;b.classList.remove('selected');b.classList.add('sorted');
+      done++;streak++;$('#v31CellDone').textContent=done+'/8 rangés';$('#v31Streak').textContent='série '+streak;
+      bin.classList.add('hit');setTimeout(()=>bin.classList.remove('hit'),220);
+      selected=null;vib(6);
+      toast(done===8?(bonus>0?'Cave rangée avec bonus. Mehdi apparaît exactement à temps pour dire « nickel ».':'Cave rangée. Mehdi arrive après l’effort avec une confiance intacte.'):'Rangé. La cave récupère un mètre carré de dignité.');
+      if(done===8){
+        clearInterval(timer);S.choices.v31_cellar={bonus:bonus>0,streak};save();
+        setTimeout(()=>complete(5),1000)
+      }
+    })
+  };
+
+  architectGame = function(){
+    let round=0,sat=50,budget=100;
+    const reqs=[
+      ['Cuisine ouverte, mais intime.',['Tout ouvrir','Demi-cloison','Tout fermer'],1,'wall'],
+      ['Beaucoup de lumière, peu de nouvelles fenêtres.',['Percer partout','Miroirs + tons clairs','Éteindre le soleil'],1,'light'],
+      ['Méditerranéen, mais pas “vacances”.',['Terre cuite partout','Bois clair + minéral','Palmier gonflable'],1,'material'],
+      ['Beaucoup de rangement, rien de visible.',['Placards intégrés','Tout en cave','Ne rien posséder'],0,'storage'],
+      ['Finalement… on remet un mur ?',['Mur partiel structurant','On ignore le client','Démission immédiate'],0,'return']
+    ];
+    screen(
+      top(6)+hero('Trace 07','Architecte catastrophe','Le plan évolue en direct. Le client aussi, malheureusement.')+
+      '<div class="v31-architect">'+
+        '<div class="v31-blueprint" id="v31Blueprint">'+
+          '<div class="v31-room-label kitchen">CUISINE</div><div class="v31-room-label living">SÉJOUR</div>'+
+          '<div class="v31-plan-wall" id="v31Wall"></div><div class="v31-plan-window" id="v31Window"></div>'+
+          '<div class="v31-plan-storage" id="v31Storage">RANGEMENT</div><div class="v31-plan-table">TABLE</div>'+
+          '<div class="v31-material-swatch" id="v31Material"></div>'+
+        '</div>'+
+        '<div class="v31-client"><span>🙂</span><small id="v31ClientMood">« intéressant… »</small></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span>Satisfaction <b id="v31Sat">50%</b></span><span>Budget fictif <b id="v31Budget">100</b></span><span id="v31ArchRound">1/5</span></div><div class="meter"><i id="v31SatBar" style="width:50%"></i></div><div id="v31ArchQ" style="margin-top:14px"></div></div>'+skip(6)
+    );
+    wireSkip(6);
+
+    const draw=()=>{
+      if(round>=reqs.length){
+        S.choices.v31_architect={sat,budget};save();
+        $('#v31ClientMood').textContent=sat>=75?'« c’est exactement ça… pour aujourd’hui. »':'« j’avais imaginé autre chose… mais quoi ? »';
+        toast(sat>=70?'Plan validé. Le client veut le modifier demain à 8h12.':'Plan terminé. Le client demande un moodboard du contraire.');
+        return setTimeout(()=>complete(6),950)
+      }
+      const r=reqs[round];$('#v31ArchRound').textContent=(round+1)+'/5';
+      $('#v31ArchQ').innerHTML='<div class="eyebrow">DEMANDE '+(round+1)+'</div><h3>'+r[0]+'</h3><div class="choices">'+r[1].map((x,j)=>'<button class="choice" data-v31ar="'+j+'">'+x+'</button>').join('')+'</div>';
+      $('[data-v31ar]').forEach(b=>b.onclick=()=>{
+        const j=+b.dataset.v31ar,correct=j===r[2];
+        sat=Math.max(5,Math.min(98,sat+(correct?11:-7)));budget=Math.max(15,budget-(j===0?14:j===1?9:4));
+        $('#v31Sat').textContent=sat+'%';$('#v31SatBar').style.width=sat+'%';$('#v31Budget').textContent=budget;
+        $('#v31ClientMood').textContent=correct?'« oui… exactement. »':'« hmm… pas tout à fait. »';
+        if(r[3]==='wall')$('#v31Wall').className='v31-plan-wall '+(['open','half','closed'][j]);
+        if(r[3]==='light')$('#v31Window').classList.toggle('bright',j===1);
+        if(r[3]==='material')$('#v31Material').className='v31-material-swatch '+(['terracotta','mineral','palm'][j]);
+        if(r[3]==='storage')$('#v31Storage').classList.toggle('integrated',j===0);
+        if(r[3]==='return')$('#v31Wall').classList.add(j===0?'returned':'confused');
+        toast(correct?'Le plan respire. Le client aussi, temporairement.':'Le client vient de dire « je pensais à autre chose » sans savoir quoi.');
+        round++;setTimeout(draw,500)
+      })
+    };
+    draw()
+  };
+
+  paintingGame = function(){
+    let coverage=0,drips=0,paws=0,pawsSpawned=false,phase='mask',down=false,masked=0,lastX=0,lastY=0,lastT=0,done=false;
+    screen(
+      top(7)+hero('Trace 08','Peinture fraîche','Prépare les bords, peins le mur, nettoie Hamoud, puis passe l’inspection finale.')+
+      '<div class="v31-paint-room">'+
+        '<div class="v31-paint-edge top"></div><div class="v31-paint-edge left"></div><div class="v31-paint-edge right"></div><div class="v31-paint-edge bottom"></div>'+
+        '<canvas id="v31Paint" width="700" height="520"></canvas><div id="v31Paws"></div>'+
+        '<div class="v31-paint-cat">🐈</div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v31PaintPhase">1/3 · protéger</span><span>Couverture <b id="v31Cov">0%</b></span><span>Coulures <b id="v31Drips">0</b></span></div><div class="meter"><i id="v31PaintBar"></i></div><div id="v31PaintControls"><p class="caption">Touche les quatre bords pour poser le ruban de masquage.</p></div></div>'+skip(7)
+    );
+    wireSkip(7);
+    const cv=$('#v31Paint'),ctx=cv.getContext('2d');ctx.fillStyle='#d8d2ca';ctx.fillRect(0,0,700,520);
+
+    $('.v31-paint-edge').forEach(edge=>edge.onclick=()=>{
+      if(phase!=='mask'||edge.classList.contains('masked'))return;
+      edge.classList.add('masked');masked++;vib(4);
+      if(masked===4){phase='paint';$('#v31PaintPhase').textContent='2/3 · peindre';$('#v31PaintControls').innerHTML='<p class="caption">Peins au doigt. Va trop lentement au même endroit et ça coule.</p>';toast('Bords protégés. Hamoud étudie déjà une violation du chantier.')}
+    });
+
+    const maybeFinish=()=>{
+      if(done||coverage<100||paws>0||phase!=='paint')return;
+      phase='inspect';$('#v31PaintPhase').textContent='3/3 · inspection';
+      $('#v31PaintControls').innerHTML='<p class="caption">Le mur est couvert. Trouve les trois petites zones à retoucher.</p><div class="v31-inspection"><button data-v31spot="0"></button><button data-v31spot="1"></button><button data-v31spot="2"></button></div>';
+      let spots=0;$('[data-v31spot]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('fixed');spots++;toast(spots===3?'Inspection validée. Aucun défaut officiellement visible.':'Retouche faite.');if(spots===3){done=true;S.choices.v31_paint={drips};save();setTimeout(()=>complete(7),900)}})
+    };
+
+    const paint=e=>{
+      if(!down||done||phase!=='paint')return;
+      const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*700/r.width,y=(e.clientY-r.top)*520/r.height,now=performance.now(),dist=Math.hypot(x-lastX,y-lastY);
+      ctx.strokeStyle='#8d6d78';ctx.lineWidth=44;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(lastX||x,lastY||y);ctx.lineTo(x,y);ctx.stroke();
+      coverage=Math.min(100,coverage+.34+dist/245);
+      if(now-lastT<48&&dist<9&&Math.random()>.87){drips++;ctx.fillStyle='#765762';ctx.fillRect(x-3,y,6,36+Math.random()*52);$('#v31Drips').textContent=drips}
+      lastX=x;lastY=y;lastT=now;$('#v31Cov').textContent=Math.floor(coverage)+'%';$('#v31PaintBar').style.width=coverage+'%';
+      if(coverage>50&&!pawsSpawned)spawnPaws();maybeFinish()
+    };
+    cv.onpointerdown=e=>{down=true;lastX=0;lastY=0;paint(e)};cv.onpointermove=paint;cv.onpointerup=()=>down=false;cv.onpointercancel=()=>down=false;
+
+    function spawnPaws(){
+      pawsSpawned=true;paws=4;toast('Hamoud vient de traverser la peinture. Il appelle ça une collaboration.');
+      $('#v31Paws').innerHTML=[[22,34],[42,47],[62,55],[78,38]].map((p,i)=>'<button data-v31paw="'+i+'" style="left:'+p[0]+'%;top:'+p[1]+'%">🐾</button>').join('');
+      $('[data-v31paw]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('cleaned');paws--;toast(paws?'Une patte de moins. L’artiste proteste.':'Pattes nettoyées. Hamoud quitte le chantier sans facture.');maybeFinish()})
+    }
+  };
+
+  sinkGame = function(){
+    let step=0,washerFound=false,pressure=50;
+    const sequence=['basin','tap','washer','trap','pipes'];
+    screen(
+      top(8)+hero('Trace 09','Le lavabo','Monte vraiment les éléments, retrouve le joint volé, puis diagnostique le grand mensonge rouge/bleu.')+
+      '<div class="v31-sink">'+
+        '<div class="v31-sink-wall"></div><div class="v31-sink-basin" id="v31Basin">◡</div>'+
+        '<div class="v31-faucet-slot" id="v31TapSlot"></div><div class="v31-drain-slot" id="v31DrainSlot"></div><div class="v31-pipe-slot" id="v31PipeSlot"></div>'+
+        '<button class="v31-sink-cat" id="v31SinkCat">🐈</button><div class="v31-water" id="v31Water"></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v31SinkPhase">1/3 · montage</span><span>Pression <b id="v31Pressure">50%</b></span></div><div class="v31-parts">'+
+        '<button data-v31part="basin">🛁<small>vasque</small></button><button data-v31part="tap">🚰<small>robinet</small></button><button data-v31part="washer">⭕<small>joint</small></button><button data-v31part="trap">〰️<small>siphon</small></button><button data-v31part="pipes">🔴🔵<small>raccords</small></button>'+
+      '</div><div id="v31SinkExtra"></div></div>'+skip(8)
+    );
+    wireSkip(8);
+    $('#v31SinkCat').onclick=()=>{
+      if(step>=2&&!washerFound){washerFound=true;$('#v31SinkCat').classList.add('moved');toast('Sous Hamoud : le joint. Évidemment.');$('[data-v31part="washer"]').classList.add('found')}
+      else toast('Hamoud refuse de commenter les pièces qu’il possède éventuellement.')
+    };
+    $('[data-v31part]').forEach(b=>b.onclick=()=>{
+      const p=b.dataset.v31part,expected=sequence[step];
+      if(p!==expected)return toast('Pas encore. Mehdi propose de “tester quand même”. Proposition refusée.');
+      if(p==='washer'&&!washerFound)return toast('Le joint manque. Le chat est beaucoup trop immobile.');
+      b.disabled=true;b.classList.add('installed');step++;vib(5);
+      if(p==='tap')$('#v31TapSlot').textContent='🚰';
+      if(p==='washer')$('#v31DrainSlot').textContent='⭕';
+      if(p==='trap')$('#v31PipeSlot').textContent='〰️';
+      if(step===sequence.length)pressureTest();
+      else toast('Pièce posée. Pour l’instant, personne ne fuit.')
+    });
+
+    function pressureTest(){
+      $('#v31SinkPhase').textContent='2/3 · pression';
+      $('#v31SinkExtra').innerHTML='<p class="caption">Monte la pression dans la zone verte sans dépasser.</p><input id="v31PressureRange" type="range" min="0" max="100" value="50" style="width:100%"><button class="btn" id="v31PressureGo" style="margin-top:10px">Tester</button>';
+      const r=$('#v31PressureRange');r.oninput=()=>{pressure=+r.value;$('#v31Pressure').textContent=pressure+'%';$('#v31Water').style.height=(pressure*.75)+'%'};
+      $('#v31PressureGo').onclick=()=>{
+        if(pressure<62)return toast('Pas assez. Même le filet d’eau manque de conviction.');
+        if(pressure>78){$('#v31Water').classList.add('leak');return toast('Trop. Petite fuite fictive. Mehdi regarde ailleurs.')}
+        $('#v31Water').classList.remove('leak');finalTest()
+      }
+    }
+    function finalTest(){
+      $('#v31SinkPhase').textContent='3/3 · chaud/froid';
+      $('#v31SinkExtra').innerHTML='<div class="v31-temp-test"><button data-v31temp="red">🔴 ROUGE</button><button data-v31temp="blue">🔵 BLEU</button></div><p class="caption" id="v31TempCopy">Teste les deux commandes.</p><div id="v31TempFix"></div>';
+      let tested=new Set();
+      $('[data-v31temp]').forEach(b=>b.onclick=()=>{
+        tested.add(b.dataset.v31temp);
+        toast(b.dataset.v31temp==='red'?'Le rouge sort… froid. Très bonne ambiance.':'Le bleu sort… chaud. Le lavabo ment avec assurance.');
+        if(tested.size===2){
+          $('#v31TempFix').innerHTML='<div class="choices"><button class="choice" data-v31fix="0">Appeler ça “thermique inversé premium”</button><button class="choice" data-v31fix="1">Inverser les deux repères</button><button class="choice" data-v31fix="2">Accuser la gravité</button></div>';
+          $('[data-v31fix]').forEach(x=>x.onclick=()=>{
+            if(+x.dataset.v31fix!==1)return toast(+x.dataset.v31fix===0?'Marketing audacieux. Refusé.':'La gravité demande à quitter le groupe.');
+            S.choices.v31_sink='reversed';save();toast('Corrigé. Mehdi annonce qu’il avait “justement un doute”.');setTimeout(()=>complete(8),850)
+          })
+        }
+      })
+    }
+  };
+
+  batteryGame = function(){
+    let round=0,input=[],showing=false,mistakes=0;
+    const patterns=[[0,2,1],[3,1,0,2],[1,3,2,0,1]];
+    screen(
+      top(9)+hero('Trace 10','Batterie : diagnostic abstrait','Aucune manipulation mécanique réelle : observe seulement la séquence lumineuse et reproduis-la.')+
+      '<div class="v31-battery">'+
+        '<div class="v31-battery-display"><span id="v31BatteryText">DIAGNOSTIC</span><b id="v31BatteryPct">34%</b></div>'+
+        '<div class="v31-battery-core">⚡</div>'+
+        '<div class="v31-battery-nodes">'+['A','B','C','D'].map((x,i)=>'<button data-v31bn="'+i+'" class="n'+i+'"><span>'+x+'</span></button>').join('')+'</div>'+
+        '<div class="v31-battery-wave" id="v31BatteryWave"></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span>Manche <b id="v31BatRound">1/3</b></span><span id="v31BatState">mémoire</span><span>Erreurs <b id="v31BatErr">0</b></span></div><button class="btn" id="v31ShowBat">Afficher la séquence</button><p class="caption">Regarde. Attends. Reproduis. Rien de plus réel que ça.</p></div>'+skip(9)
+    );
+    wireSkip(9);
+    const nodes=$('[data-v31bn]');
+    const show=async()=>{
+      if(showing)return;showing=true;input=[];$('#v31BatState').textContent='observe';$('#v31ShowBat').disabled=true;
+      for(const n of patterns[round]){nodes[n].classList.add('flash');$('#v31BatteryWave').className='v31-battery-wave pulse';await wait(380);nodes[n].classList.remove('flash');$('#v31BatteryWave').className='v31-battery-wave';await wait(150)}
+      showing=false;$('#v31BatState').textContent='à toi';$('#v31ShowBat').disabled=false
+    };
+    $('#v31ShowBat').onclick=show;
+    nodes.forEach(b=>b.onclick=()=>{
+      if(showing)return;
+      const n=+b.dataset.v31bn,k=input.length;input.push(n);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),160);
+      if(n!==patterns[round][k]){mistakes++;$('#v31BatErr').textContent=mistakes;$('#v31BatteryText').textContent='ERREUR MÉMOIRE';toast('La voiture allume un voyant imaginaire uniquement pour être désagréable.');input=[];return}
+      if(input.length===patterns[round].length){
+        round++;$('#v31BatteryPct').textContent=(34+round*22)+'%';$('#v31BatteryText').textContent='SÉQUENCE OK';
+        if(round>=patterns.length){S.choices.v31_battery={mistakes};save();toast('Diagnostic terminé. Démarrage fictif autorisé.');setTimeout(()=>complete(9),850)}
+        else{$('#v31BatRound').textContent=(round+1)+'/3';$('#v31BatState').textContent='mémoire';toast('Manche suivante. La voiture augmente inutilement le niveau de difficulté.');setTimeout(show,600)}
+      }
+    });
+    setTimeout(show,600)
+  };
+
+  cleanCarGame = function(){
+    let phase=0,washed=0,interior=0,finalFound=false,down=false,vacuumed=0;
+    const dirt=[];
+    screen(
+      top(10)+hero('Trace 11','Nettoyage voiture extrême','Lavage, intérieur, aspirateur, puis le fameux dernier 1 %.')+
+      '<div class="v31-carwash" id="v31CarWash"><div class="v31-car-sky"></div><div class="v31-car-shell">🚙</div><canvas id="v31WashCanvas" width="700" height="430"></canvas></div>'+
+      '<div class="card"><div class="hud"><span id="v31CleanPhase">1/4 · extérieur</span><span id="v31CleanPct">0%</span></div><div class="meter cold"><i id="v31CleanBar"></i></div><p class="caption" id="v31CleanCopy">Frotte la carrosserie.</p></div>'+skip(10)
+    );
+    wireSkip(10);
+    const cv=$('#v31WashCanvas'),ctx=cv.getContext('2d');
+    for(let i=0;i<120;i++){const x=75+Math.random()*550,y=105+Math.random()*245,r=5+Math.random()*17;dirt.push({x,y,r,alive:true})}
+    const redraw=()=>{ctx.clearRect(0,0,700,430);for(const d of dirt){if(!d.alive)continue;ctx.fillStyle='rgba(76,58,44,.58)';ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill()}};
+    redraw();
+    const clean=e=>{
+      if(!down||phase!==0)return;
+      const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*700/r.width,y=(e.clientY-r.top)*430/r.height;let hit=0;
+      for(const d of dirt){if(d.alive&&Math.hypot(d.x-x,d.y-y)<46){d.alive=false;hit++}}
+      if(hit){redraw();washed=dirt.filter(d=>!d.alive).length/dirt.length*100;$('#v31CleanPct').textContent=Math.min(99,Math.floor(washed))+'%';$('#v31CleanBar').style.width=Math.min(99,washed)+'%';if(washed>94)setTimeout(interiorPhase,400)}
+    };
+    cv.onpointerdown=e=>{down=true;clean(e)};cv.onpointermove=clean;cv.onpointerup=()=>down=false;cv.onpointercancel=()=>down=false;
+
+    function interiorPhase(){
+      if(phase!==0)return;phase=1;
+      $('#v31CleanPhase').textContent='2/4 · intérieur';$('#v31CleanPct').textContent='0/7 objets';$('#v31CleanBar').style.width='0%';$('#v31CleanCopy').textContent='Ramasse tout ce qui n’a plus aucune défense crédible.';
+      $('#v31CarWash').innerHTML='<div class="v31-car-interior"><div class="v31-dashboard">TABLEAU DE BORD</div>'+
+        [['🧾','ticket',12,62],['🧦','chaussette',72,73],['🥤','gobelet',30,58],['🧻','lingette',83,42],['🍪','miette',48,80],['🧸','jouet',20,36],['🐈','poils Hamoud',62,34]].map((x,i)=>'<button data-v31trash="'+i+'" style="left:'+x[2]+'%;top:'+x[3]+'%"><span>'+x[0]+'</span><small>'+x[1]+'</small></button>').join('')+
+      '</div>';
+      $('[data-v31trash]').forEach(b=>b.onclick=()=>{
+        if(b.disabled)return;b.disabled=true;b.classList.add('gone');interior++;$('#v31CleanPct').textContent=interior+'/7 objets';$('#v31CleanBar').style.width=(interior/7*100)+'%';
+        toast(interior===7?'Intérieur débarrassé. Maintenant, les miettes microscopiques veulent négocier.':'Retiré.');
+        if(interior===7)setTimeout(vacuumPhase,500)
+      })
+    }
+
+    function vacuumPhase(){
+      phase=2;$('#v31CleanPhase').textContent='3/4 · aspirateur';$('#v31CleanPct').textContent='0/5 zones';$('#v31CleanBar').style.width='0%';$('#v31CleanCopy').textContent='Passe l’aspirateur sur les cinq zones.';
+      $('#v31CarWash').innerHTML='<div class="v31-vacuum-scene"><div class="v31-seat s1"></div><div class="v31-seat s2"></div><div class="v31-floor"></div>'+
+        [[16,66],[38,78],[59,68],[78,80],[54,48]].map((p,i)=>'<button data-v31vac="'+i+'" style="left:'+p[0]+'%;top:'+p[1]+'%">✦</button>').join('')+
+        '<div class="v31-vacuum-head">▰</div></div>';
+      $('[data-v31vac]').forEach(b=>b.onclick=()=>{
+        if(b.disabled)return;b.disabled=true;b.classList.add('clean');vacuumed++;vib(4);$('#v31CleanPct').textContent=vacuumed+'/5 zones';$('#v31CleanBar').style.width=(vacuumed/5*100)+'%';
+        if(vacuumed===5)setTimeout(finalSpot,500)
+      })
+    }
+
+    function finalSpot(){
+      phase=3;$('#v31CleanPhase').textContent='4/4 · le fameux 99%';$('#v31CleanPct').textContent='99%';$('#v31CleanBar').style.width='99%';$('#v31CleanCopy').textContent='Il reste UNE tache. Minuscule. Évidemment.';
+      $('#v31CarWash').innerHTML='<div class="v31-final-car"><div>🚙</div><button id="v31MicroSpot"></button><span>✦ ✧ ✦</span></div>';
+      $('#v31MicroSpot').onclick=()=>{
+        if(finalFound)return;finalFound=true;$('#v31MicroSpot').classList.add('found');$('#v31CleanPct').textContent='100%';$('#v31CleanBar').style.width='100%';
+        toast('100 %. Silence. Respect. ... Hamoud approche.');
+        setTimeout(()=>{$('#v31CarWash').insertAdjacentHTML('beforeend','<div class="v31-cat-signature">🐈 <b>🐾</b></div>');S.choices.v31_car='100+1paw';save();toast('Une patte. Signature officielle du directeur qualité.');setTimeout(()=>complete(10),1000)},800)
+      }
+    }
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
