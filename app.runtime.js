@@ -3291,6 +3291,138 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   setTimeout(resumePrompt,500);
 })();
 
+
+/* ===== V34 PWA, MOBILE & UPDATE POLISH ===== */
+(()=>{
+  const BUILD='34';
+  const INSTALL_KEY='raphy-v34-install-dismissed';
+  let deferredInstall=null;
+  let installCardShown=false;
+  const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent||'');
+  const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+
+  const closeModalV34=()=>{modal.hidden=true;modal.innerHTML=''};
+
+  function showInstallHelp(){
+    modal.hidden=false;
+    const installed=isStandalone();
+    modal.innerHTML=
+      '<div class="modal-card v34-install-modal">'+
+        '<div class="eyebrow">APPLICATION</div>'+
+        '<h2>'+(installed?'Déjà installée.':'Garder Raphy sur l’écran d’accueil')+'</h2>'+
+        (installed
+          ?'<p class="storyline">L’application est déjà lancée comme une app. Aucun navigateur à ouvrir.</p>'
+          :(deferredInstall
+            ?'<p class="storyline">Ton navigateur peut installer directement le jeu comme une application.</p><button class="btn" id="v34NativeInstall">Installer maintenant</button>'
+            :isiOS
+              ?'<div class="v34-install-steps"><div><b>1</b><span>Ouvre le jeu dans Safari.</span></div><div><b>2</b><span>Touche le bouton Partager ⤴︎.</span></div><div><b>3</b><span>Choisis « Sur l’écran d’accueil » puis « Ajouter ».</span></div></div>'
+              :'<div class="v34-install-steps"><div><b>1</b><span>Ouvre le menu du navigateur.</span></div><div><b>2</b><span>Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</span></div></div>'))+
+        '<div class="card soft v34-offline-card"><b>Après installation</b><p class="caption">Le jeu principal reste disponible même si la connexion disparaît après un premier chargement complet.</p></div>'+
+        '<button class="btn secondary" id="v34InstallClose">Fermer</button>'+
+      '</div>';
+    $('#v34InstallClose').onclick=closeModalV34;
+    const native=$('#v34NativeInstall');
+    if(native)native.onclick=async()=>{
+      const p=deferredInstall;if(!p)return;
+      p.prompt();
+      try{await p.userChoice}catch{}
+      deferredInstall=null;localStorage.setItem(INSTALL_KEY,'1');closeModalV34();syncInstallButton()
+    }
+  }
+
+  function syncInstallButton(){
+    const controls=document.querySelector('.v24-controls');
+    if(!controls||!S.unlocked)return;
+    let b=$('#v34InstallBtn');
+    if(!b){
+      b=document.createElement('button');
+      b.className='v24-round v34-install-btn';
+      b.id='v34InstallBtn';
+      b.setAttribute('aria-label','Installer l’application');
+      b.textContent=isStandalone()?'✓':'＋';
+      b.onclick=showInstallHelp;
+      controls.append(b)
+    }
+    b.textContent=isStandalone()?'✓':'＋';
+    b.title=isStandalone()?'Application installée':'Installer sur l’écran d’accueil'
+  }
+
+  addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();deferredInstall=e;syncInstallButton()
+  });
+  addEventListener('appinstalled',()=>{
+    deferredInstall=null;localStorage.setItem(INSTALL_KEY,'1');toast('Installée. Raphy a maintenant sa propre place sur l’écran d’accueil.');syncInstallButton()
+  });
+
+  function maybeShowInstallCard(){
+    if(installCardShown||!S.unlocked||isStandalone())return;
+    if(localStorage.getItem(INSTALL_KEY)==='1')return;
+    const completed=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+    if(completed<1)return;
+    installCardShown=true;
+    const card=document.createElement('div');
+    card.className='v34-install-toast';
+    card.innerHTML='<div><b>Garder le jeu comme une app ?</b><small>Écran d’accueil · plein écran · reprise locale</small></div><button id="v34InstallOpen">Voir</button><button id="v34InstallDismiss" aria-label="Fermer">×</button>';
+    document.body.append(card);
+    $('#v34InstallOpen').onclick=()=>{card.remove();localStorage.setItem(INSTALL_KEY,'1');showInstallHelp()};
+    $('#v34InstallDismiss').onclick=()=>{card.remove();localStorage.setItem(INSTALL_KEY,'1')}
+  }
+
+  function netBanner(online){
+    document.querySelector('.v34-net-banner')?.remove();
+    if(online){toast('Connexion revenue. La maison a retrouvé le réseau.',1800);return}
+    const b=document.createElement('div');b.className='v34-net-banner';b.innerHTML='<span>Hors connexion</span><small>La progression reste enregistrée sur cet appareil.</small>';document.body.append(b)
+  }
+  addEventListener('offline',()=>netBanner(false));
+  addEventListener('online',()=>netBanner(true));
+  if(!navigator.onLine)setTimeout(()=>netBanner(false),400);
+
+  // Service-worker update handling. Existing game state is saved before any reload.
+  if('serviceWorker'in navigator){
+    navigator.serviceWorker.ready.then(reg=>{
+      const check=()=>reg.update().catch(()=>{});
+      setTimeout(check,5000);
+      setInterval(check,10*60*1000);
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller)showUpdate()
+        })
+      })
+    }).catch(()=>{});
+  }
+  let updateShown=false;
+  function showUpdate(){
+    if(updateShown)return;updateShown=true;
+    const b=document.createElement('div');b.className='v34-update-banner';
+    b.innerHTML='<div><b>Une mise à jour est prête</b><small>La progression sera conservée.</small></div><button id="v34UpdateNow">Actualiser</button><button id="v34UpdateLater">Plus tard</button>';
+    document.body.append(b);
+    $('#v34UpdateNow').onclick=()=>{try{window.RaphyApp?.snapshot?.()}catch{}location.reload()};
+    $('#v34UpdateLater').onclick=()=>b.remove()
+  }
+
+  // Avoid iOS viewport jumps when the software keyboard opens/closes.
+  if(window.visualViewport){
+    const vv=visualViewport;
+    const applyViewport=()=>{
+      document.documentElement.style.setProperty('--v34-vh',vv.height+'px');
+      document.documentElement.style.setProperty('--v34-keyboard',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px')
+    };
+    vv.addEventListener('resize',applyViewport);vv.addEventListener('scroll',applyViewport);applyViewport()
+  }
+
+  // Add install control whenever the scene UI changes.
+  const obs=new MutationObserver(()=>{
+    syncInstallButton();
+    if(S.unlocked)setTimeout(maybeShowInstallCard,700)
+  });
+  obs.observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>{syncInstallButton();maybeShowInstallCard()},1200);
+
+  // Small build marker only inside hidden QA console.
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
