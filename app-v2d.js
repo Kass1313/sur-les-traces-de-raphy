@@ -87,3 +87,20 @@ function heroKidGame(){
   }
   draw()
 }
+
+
+route=function(i){
+  S.current=i;save();skipArmed=false;
+  [
+    departure,mri,()=>timing(2,'Kiné : protocole très officiel'),
+    ()=>simpleOrder(3,'Bloc opératoire fictif','Puzzle, pas conseil médical.',[0,1,2,3],['🟦 L4','🟪 L5','🟡 Disque','❤️ Courage'],'Dos fictivement réparé. Hamoud conserve l’outil.'),
+    gyno,
+    ()=>simpleOrder(5,'La cave','Raphy range. Mehdi récoltera les mérites.',[0,1,2,3],['📦 Câbles','🎄 Déco','🪛 Objet inconnu','🐈 Hamoud'],'Cave rangée. Mehdi : « on a bien géré ».'),
+    ()=>simpleOrder(6,'Architecte','Le client change d’avis toutes les 43 secondes.',[0,2,1,3],['🏠 Ouvrir','🧱 Refermer','☀️ Lumière','🗄️ Rangement'],'Le client adore. Il veut tout changer demain.'),
+    ()=>canvasGame(7,'Peinture'),sinkGame,
+    ()=>simpleOrder(9,'Batterie','Puzzle abstrait, pas tutoriel mécanique.',[0,2,1,3],['A','B','C','D'],'Système restauré. Pile de clé faible. Évidemment.'),
+    ()=>canvasGame(10,'Nettoyage voiture',true),
+    school,bedtimeGame,heroKidGame,mojito,coffee,customs,algeria,horror,house,unknown,escapeGame,trial,calm,unsaid,final
+  ][i]()
+};
+if(S.unlocked&&S.storyDone)route(S.current);
