@@ -4240,20 +4240,19 @@ if(window.RaphyApp)window.RaphyApp.version='41';
       const actions=$('#v43CallActions');
       if(!actions)return;
       let handled=false;
-      const answer=e=>{
-        const btn=e.target.closest('[data-v43-answer]');
-        if(!btn||handled||phase!=='ring')return;
-        handled=true;
-        const refused=btn.dataset.v43Answer==='decline';
-        $('[data-v43-answer]').forEach(x=>x.disabled=true);
-        $('#v43CallStatus').textContent=refused?'Appel refusé…':'Appel décroché…';
-        btn.classList.add('chosen');
-        vib(refused?[12,22,12]:[10,20,30]);
-        setTimeout(()=>startConversation(refused),180);
-      };
-      // Native delegation + pointer fallback for iPhone Safari.
-      actions.addEventListener('click',answer);
-      actions.addEventListener('pointerup',answer);
+      $('[data-v43-answer]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(handled||phase!=='ring')return;
+          handled=true;
+          const refused=btn.dataset.v43Answer==='decline';
+          $('[data-v43-answer]').forEach(x=>x.disabled=true);
+          const status=$('#v43CallStatus');
+          if(status)status.textContent=refused?'Appel refusé…':'Appel décroché…';
+          btn.classList.add('chosen');
+          vib(refused?[12,22,12]:[10,20,30]);
+          setTimeout(()=>startConversation(refused),120);
+        });
+      });
     }
 
     function startConversation(refused){
@@ -4315,12 +4314,12 @@ if(window.RaphyApp)window.RaphyApp.version='41';
         '</div>';
 
       const paint=()=>{
-        $('[data-v43-dot]').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
-        $('#v43Dots i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $$('[data-v43-dot]').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $$('#v43Dots i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
         $('#v43Send').disabled=entered.length!==4;
         $('#v43Error').textContent=''
       };
-      $('[data-v43-key]').forEach(b=>b.addEventListener('click',()=>{
+      $$('[data-v43-key]').forEach(b=>b.addEventListener('click',()=>{
         const k=b.dataset.v43Key;
         if(k==='clear')entered='';
         else if(k==='back')entered=entered.slice(0,-1);
@@ -4378,6 +4377,8 @@ if(window.RaphyApp)window.RaphyApp.version='41';
   window.RaphyBuild=BUILD;
 })();
 
+window.RaphyBuild='44';
+if(window.RaphyApp)window.RaphyApp.version='44';
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
