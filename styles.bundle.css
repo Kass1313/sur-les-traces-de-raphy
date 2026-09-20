@@ -173,3 +173,31 @@ body[data-mood="tender"] .card,body[data-mood="final"] .card{box-shadow:0 22px 7
 .v25-envelope>span{font-size:28px;color:#e5c17f}.v25-envelope b{font-size:13px}.v25-envelope small{margin-top:auto;color:#817581}.v25-envelope.opened{border-color:rgba(229,193,127,.34);background:linear-gradient(145deg,rgba(229,193,127,.09),rgba(255,255,255,.03))}
 .v25-note-open{margin-top:14px}.v25-note-open .storyline{font-size:20px}
 @media(max-width:430px){.v25-board-mini.collapsed{grid-template-columns:repeat(2,1fr)}.v25-note-grid{grid-template-columns:1fr 1fr}.v25-calm-card{min-height:380px;padding:22px}.v25-calm-stage{min-height:400px}}
+
+
+/* ===== V26 WELCOME KEYPAD ===== */
+.v26-lock-screen{position:relative;overflow:auto}
+.v26-lock-wrap{width:min(100%,560px);display:flex;flex-direction:column;align-items:center;gap:14px}
+.v26-lock-mark{animation:v26LockFloat 3s ease-in-out infinite}
+.v26-lock-card{width:min(100%,500px);position:relative;z-index:30;pointer-events:auto!important;transition:.35s transform,.35s filter,.35s opacity}
+.v26-lock-card.unlocked{transform:scale(.985);filter:brightness(1.2);opacity:.92}
+.v26-pin-input{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;caret-color:#ff9eb5;margin-top:12px;letter-spacing:.12em;font-size:22px}
+.v26-pin-input::placeholder{letter-spacing:.02em;font-size:15px;color:#857a86}
+.v26-pin-dots{display:flex;justify-content:center;gap:10px;margin:14px 0 2px}
+.v26-pin-dots i{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.04);transition:.16s transform,.16s background,.16s box-shadow}
+.v26-pin-dots i.filled{background:linear-gradient(135deg,var(--rose),var(--gold));border-color:transparent;transform:scale(1.12);box-shadow:0 0 14px rgba(239,131,157,.28)}
+.v26-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}
+.v26-keypad button{min-height:54px;border-radius:16px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.055);color:white;font-size:20px;font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.03);transition:.12s transform,.12s background}
+.v26-keypad button:active{transform:scale(.96);background:rgba(255,255,255,.12)}
+.v26-keypad .v26-key-small{font-size:15px;color:#b7acb8}
+.v26-enter{width:100%}
+.v26-enter[disabled]{opacity:.35}
+body:not(.raphy-paused) .v26-lock-screen,
+body:not(.raphy-paused) .v26-lock-screen *{pointer-events:auto}
+@keyframes v26LockFloat{50%{transform:translateY(-6px);box-shadow:0 26px 55px rgba(0,0,0,.34)}}
+@media(max-width:430px){
+  .v26-lock-screen{justify-content:flex-start!important;padding-top:max(20px,env(safe-area-inset-top))}
+  .v26-lock-wrap{gap:8px}.v26-lock-mark{width:68px;height:68px;font-size:30px;border-radius:22px}
+  .v26-lock-card{padding:15px}.v26-keypad{gap:7px;margin:10px 0}.v26-keypad button{min-height:48px}
+  .v26-pin-input{font-size:20px;padding:13px}
+}
