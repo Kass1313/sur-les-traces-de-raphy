@@ -8,7 +8,15 @@ const $=(s,p=document)=>p.querySelector(s), $$=(s,p=document)=>[...p.querySelect
 const app=$('#app'),toastBox=$('#toast'),modal=$('#modal'),KEY='raphy-v8',CODE='060361';
 const NAMES=['Le départ','IRM','Kiné','Bloc fictif','Gynécologue','Cave','Architecte','Peinture','Lavabo','Batterie','Nettoyage voiture','Sortie d’école','Dodo princesse','Mission super-héros','Vitrine mojito','Iced caramel macchiato','Douanes de l’amour','Projection Algérie','Pièce aux insectes','Maison impossible','Numéro masqué','Grand escape game','Dossier Mehdi','Les 48 heures','Ce qu’on ne dit pas assez','Dernière porte'];
 const D={unlocked:false,current:0,done:{},choices:{},storyDone:false};
-let S=(()=>{try{return {...D,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return {...D}}})();
+const BACKUP_KEY='raphy-v8-backup';
+let S=(()=>{
+  const norm=x=>({...D,...(x&&typeof x==='object'?x:{}),done:(x&&x.done&&typeof x.done==='object'?x.done:{}),choices:(x&&x.choices&&typeof x.choices==='object'?x.choices:{})});
+  try{return norm(JSON.parse(localStorage.getItem(KEY)||'{}'))}
+  catch{
+    try{return norm(JSON.parse(localStorage.getItem(BACKUP_KEY)||'{}'))}
+    catch{return {...D,done:{},choices:{}}}
+  }
+})();
 let tt,skipArmed=false;
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
 const toast=(m,t=2400)=>{clearTimeout(tt);toastBox.textContent=m;toastBox.classList.add('show');tt=setTimeout(()=>toastBox.classList.remove('show'),t)};
@@ -3082,6 +3090,205 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#maskedDate').onkeydown=e=>{if(e.key==='Enter')send()}
     }
   };
+})();
+
+
+/* ===== V33 QA, SAVE RECOVERY & HIDDEN MEHDI ZONE ===== */
+(()=>{
+  const BUILD='33';
+  const SNAPSHOT_KEY='raphy-v8-backup';
+  const RESUME_KEY='raphy-v33-resume-handled';
+  let devTapCount=0,devTapTimer=null;
+
+  const normalizeState=x=>({
+    ...D,
+    ...(x&&typeof x==='object'?x:{}),
+    done:(x&&x.done&&typeof x.done==='object'?x.done:{}),
+    choices:(x&&x.choices&&typeof x.choices==='object'?x.choices:{})
+  });
+
+  function snapshot(reason='checkpoint'){
+    try{
+      const existing=localStorage.getItem(KEY);
+      if(existing) localStorage.setItem(SNAPSHOT_KEY,existing);
+      S.meta={...(S.meta||{}),build:BUILD,lastCheckpoint:new Date().toISOString(),reason};
+      localStorage.setItem(KEY,JSON.stringify(S));
+      return true
+    }catch(e){
+      console.warn('Raphy snapshot failed',e);
+      return false
+    }
+  }
+
+  function restoreBackup(){
+    try{
+      const raw=localStorage.getItem(SNAPSHOT_KEY);
+      if(!raw) return false;
+      S=normalizeState(JSON.parse(raw));
+      localStorage.setItem(KEY,JSON.stringify(S));
+      return true
+    }catch{return false}
+  }
+
+  // Scene-level checkpoints: closing Safari mid-game restarts the current trace cleanly.
+  const routeV33=route;
+  route=function(i){
+    const n=Math.max(0,Math.min(25,Number(i)||0));
+    S.current=n;
+    snapshot('enter-scene-'+n);
+    return routeV33(n)
+  };
+
+  const completeV33=complete;
+  complete=function(i,sk=false){
+    snapshot('before-complete-'+i);
+    const r=completeV33(i,sk);
+    setTimeout(()=>snapshot('after-complete-'+i),40);
+    return r
+  };
+
+  addEventListener('pagehide',()=>snapshot('pagehide'));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')snapshot('hidden')});
+
+  // Upgrade public test API.
+  window.RaphyApp={
+    version:BUILD,
+    getState:()=>JSON.parse(JSON.stringify(S)),
+    go:i=>route(Math.max(0,Math.min(25,Number(i)||0))),
+    replay:()=>replay(),
+    snapshot:()=>snapshot('manual-api'),
+    restoreBackup:()=>{const ok=restoreBackup();if(ok)location.reload();return ok},
+    reset:()=>{localStorage.removeItem(KEY);localStorage.removeItem(SNAPSHOT_KEY);location.reload()}
+  };
+
+  function closeModal(){
+    modal.hidden=true;modal.innerHTML=''
+  }
+
+  function devGate(){
+    modal.hidden=false;
+    modal.innerHTML=
+      '<div class="modal-card v33-dev-gate">'+
+        '<div class="eyebrow">ZONE MEHDI · V'+BUILD+'</div>'+
+        '<h2>Accès test</h2><p class="caption">Zone cachée pour contrôler les 26 traces et la sauvegarde locale.</p>'+
+        '<input id="v33DevPin" class="code-input" inputmode="numeric" maxlength="6" placeholder="Code">'+
+        '<div class="actions two" style="margin-top:12px"><button class="btn" id="v33DevEnter">Entrer</button><button class="btn secondary" id="v33DevClose">Fermer</button></div>'+
+        '<p class="caption" id="v33DevErr"></p>'+
+      '</div>';
+    const input=$('#v33DevPin');
+    const enter=()=>{if(input.value===CODE){sessionStorage.setItem('raphy-dev-ok','1');dev()}else{$('#v33DevErr').textContent='Code incorrect.';vib(8)}};
+    $('#v33DevEnter').onclick=enter;$('#v33DevClose').onclick=closeModal;
+    input.onkeydown=e=>{if(e.key==='Enter')enter()};
+    setTimeout(()=>input.focus(),180)
+  }
+
+  dev = function(){
+    if(sessionStorage.getItem('raphy-dev-ok')!=='1')return devGate();
+    const doneCount=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+    const choicesCount=Object.keys(S.choices||{}).length;
+    let bytes=0;try{bytes=(localStorage.getItem(KEY)||'').length}catch{}
+    modal.hidden=false;
+    modal.innerHTML=
+      '<div class="modal-card v33-dev">'+
+        '<div class="v33-dev-head"><div><div class="eyebrow">ZONE MEHDI · BUILD '+BUILD+'</div><h2>Contrôle du jeu</h2></div><button class="v33-dev-x" id="v33DevX">×</button></div>'+
+        '<div class="v33-dev-stats">'+
+          '<div><b>'+String(S.current+1).padStart(2,'0')+'</b><small>trace actuelle</small></div>'+
+          '<div><b>'+doneCount+'/26</b><small>terminées</small></div>'+
+          '<div><b>'+choicesCount+'</b><small>choix</small></div>'+
+          '<div><b>'+Math.max(1,Math.round(bytes/1024))+' ko</b><small>sauvegarde</small></div>'+
+        '</div>'+
+        '<div class="v33-dev-actions">'+
+          '<button class="btn secondary" id="v33Replay">Menu des traces</button>'+
+          '<button class="btn secondary" id="v33Restart">Rejouer la trace actuelle</button>'+
+          '<button class="btn secondary" id="v33Unlock">Tout débloquer</button>'+
+          '<button class="btn secondary" id="v33Backup">Créer une sauvegarde</button>'+
+          '<button class="btn secondary" id="v33Restore">Restaurer la sauvegarde</button>'+
+          '<button class="btn secondary" id="v33Export">Copier la sauvegarde</button>'+
+          '<button class="btn secondary" id="v33Import">Importer une sauvegarde</button>'+
+          '<button class="btn secondary" id="v33Acts">Revoir les écrans d’actes</button>'+
+        '</div>'+
+        '<div class="eyebrow" style="margin-top:18px">ACCÈS DIRECT AUX 26 TRACES</div>'+
+        '<div class="v33-scene-grid">'+NAMES.map((n,i)=>'<button data-v33jump="'+i+'" class="'+(S.done[i]?'done':'')+(i===S.current?' current':'')+'"><span>'+String(i+1).padStart(2,'0')+'</span><b>'+n+'</b><small>'+(S.done[i]?'✓ terminée':'à tester')+'</small></button>').join('')+'</div>'+
+        '<div class="v33-danger-zone"><div><b>Réinitialisation</b><small>Efface progression + sauvegarde de secours.</small></div><button class="btn danger" id="v33Reset">Tout effacer</button></div>'+
+        '<div id="v33DevPanel"></div>'+
+      '</div>';
+
+    $('#v33DevX').onclick=closeModal;
+    $('#v33Replay').onclick=()=>{closeModal();replay()};
+    $('#v33Restart').onclick=()=>{const n=S.current;closeModal();route(n)};
+    $('#v33Unlock').onclick=()=>{for(let i=0;i<26;i++)S.done[i]=true;snapshot('qa-unlock-all');toast('Les 26 traces sont débloquées.');dev()};
+    $('#v33Backup').onclick=()=>{snapshot('manual-backup');toast('Sauvegarde locale créée.');dev()};
+    $('#v33Restore').onclick=()=>{
+      $('#v33DevPanel').innerHTML='<div class="card soft v33-confirm"><b>Restaurer le dernier backup ?</b><p class="caption">La progression actuelle sera remplacée.</p><div class="actions two"><button class="btn" id="v33RestoreYes">Restaurer</button><button class="btn secondary" id="v33RestoreNo">Annuler</button></div></div>';
+      $('#v33RestoreYes').onclick=()=>{if(restoreBackup())location.reload();else toast('Aucune sauvegarde de secours disponible.')};
+      $('#v33RestoreNo').onclick=()=>{$('#v33DevPanel').innerHTML=''}
+    };
+    $('#v33Export').onclick=async()=>{
+      const text=JSON.stringify({build:BUILD,state:S},null,2);
+      try{await navigator.clipboard.writeText(text);toast('Sauvegarde copiée dans le presse-papiers.')}
+      catch{
+        $('#v33DevPanel').innerHTML='<textarea class="v33-save-text" id="v33ExportText"></textarea>';
+        $('#v33ExportText').value=text;$('#v33ExportText').select();toast('Copie le texte affiché.')
+      }
+    };
+    $('#v33Import').onclick=()=>{
+      $('#v33DevPanel').innerHTML='<div class="card soft"><b>Importer une sauvegarde</b><textarea class="v33-save-text" id="v33ImportText" placeholder="Colle ici le JSON exporté"></textarea><div class="actions two"><button class="btn" id="v33ImportGo">Importer</button><button class="btn secondary" id="v33ImportCancel">Annuler</button></div></div>';
+      $('#v33ImportGo').onclick=()=>{
+        try{
+          const parsed=JSON.parse($('#v33ImportText').value);
+          const incoming=normalizeState(parsed.state||parsed);
+          localStorage.setItem(SNAPSHOT_KEY,localStorage.getItem(KEY)||JSON.stringify(S));
+          S=incoming;snapshot('import');location.reload()
+        }catch{$('#v33ImportText').classList.add('bad');toast('JSON invalide. Rien n’a été modifié.')}
+      };
+      $('#v33ImportCancel').onclick=()=>{$('#v33DevPanel').innerHTML=''}
+    };
+    $('#v33Acts').onclick=()=>{Object.keys(sessionStorage).filter(k=>k.startsWith('raphy-v24-act-')).forEach(k=>sessionStorage.removeItem(k));toast('Les séparateurs d’actes réapparaîtront.');};
+    $('[data-v33jump]').forEach(b=>b.onclick=()=>{const n=+b.dataset.v33jump;S.current=n;snapshot('qa-jump-'+n);closeModal();route(n)});
+    $('#v33Reset').onclick=()=>{
+      $('#v33DevPanel').innerHTML='<div class="card soft v33-confirm"><b>Vraiment tout effacer ?</b><p class="caption">Cette action supprime la progression et le backup local.</p><div class="actions two"><button class="btn danger" id="v33ResetYes">Oui, tout effacer</button><button class="btn secondary" id="v33ResetNo">Non</button></div></div>';
+      $('#v33ResetYes').onclick=()=>{localStorage.removeItem(KEY);localStorage.removeItem(SNAPSHOT_KEY);sessionStorage.clear();location.reload()};
+      $('#v33ResetNo').onclick=()=>{$('#v33DevPanel').innerHTML=''}
+    }
+  };
+
+  // Five taps on the tiny brand dot reveal the hidden QA entrance.
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.brand-dot'))return;
+    clearTimeout(devTapTimer);devTapCount++;
+    devTapTimer=setTimeout(()=>{devTapCount=0},2500);
+    if(devTapCount>=5){devTapCount=0;devGate()}
+  },true);
+
+  // Hide the visible old credits QA button: QA remains available via the secret 5-tap gesture.
+  const uiObserverV33=new MutationObserver(()=>{
+    const old=$('#creditsDev');if(old)old.style.display='none';
+  });
+  uiObserverV33.observe(app,{childList:true,subtree:true});
+
+  function resumePrompt(){
+    if(sessionStorage.getItem(RESUME_KEY)==='1')return;
+    if(!S.unlocked||!S.storyDone||!(S.current>0&&S.current<25))return;
+    sessionStorage.setItem(RESUME_KEY,'1');
+    const scene=S.current;
+    const completed=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+    modal.hidden=false;
+    modal.innerHTML=
+      '<div class="modal-card v33-resume">'+
+        '<div class="eyebrow">PROGRESSION RETROUVÉE</div>'+
+        '<div class="v33-resume-number">'+String(scene+1).padStart(2,'0')+'</div>'+
+        '<h2>'+NAMES[scene]+'</h2>'+
+        '<p>Ta progression est bien là. Le jeu reprend au début de cette trace pour éviter une scène à moitié cassée après fermeture du navigateur.</p>'+
+        '<div class="v33-resume-meta"><span>'+completed+'/26 terminées</span><span>build '+BUILD+'</span></div>'+
+        '<div class="actions"><button class="btn" id="v33Resume">Reprendre ici</button><button class="btn secondary" id="v33ResumeReplay">Voir les traces débloquées</button><button class="btn secondary" id="v33ResumeStart">Revenir au début du jeu</button></div>'+
+      '</div>';
+    $('#v33Resume').onclick=()=>{closeModal();route(scene)};
+    $('#v33ResumeReplay').onclick=()=>{closeModal();replay()};
+    $('#v33ResumeStart').onclick=()=>{S.current=0;snapshot('resume-start-over');closeModal();route(0)}
+  }
+
+  snapshot('boot-v33');
+  setTimeout(resumePrompt,500);
 })();
 
 window.__raphyRuntimePhase='booted';
