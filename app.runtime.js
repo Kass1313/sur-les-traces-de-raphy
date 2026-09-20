@@ -3522,6 +3522,232 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   window.RaphyBuild=BUILD;
 })();
 
+
+/* ===== V36 CLINIC & FINAL POLISH ===== */
+(()=>{
+  const BUILD='36';
+
+  gyno = function(){
+    let q=0,answered=0,glitches=0,selected=[];
+    const doctor=[
+      ['Parfait. Le logiciel, lui, fuit clairement.','Je note : « patiente coopérative, logiciel à surveiller ».','Très bien. J’ajoute « plomberie émotionnelle stable ».'],
+      ['Réponse recevable. La paperasse, moins.','Je peux prescrire trois jours sans formulaire. Malheureusement c’est un formulaire.','Votre patience est donc en phase terminale administrative.'],
+      ['Merci de confirmer. J’avais peur que ce rendez-vous parte très loin.','Le lavabo est donc officiellement le patient secondaire.','Je vais entourer « TOUJOURS LE LAVABO » en rouge.'],
+      ['Je vois. Exposition chronique à la confiance masculine non homologuée.','Je recommande de conserver la notice à distance de Mehdi.','Le terme « optimisation » vient d’être interdit dans ce cabinet.'],
+      ['Excellent. Nous sauvons la dignité du service.','Vous aviez révisé ? Je suis presque inquiète.','Le siphon peut attendre en salle d’attente.'],
+      ['Décision courageuse. Très courageuse.','Je peux inscrire Hamoud en contact secondaire, mais il ne répond jamais.','Je note : Mehdi, sous réserve de conduite acceptable.'],
+      ['Je m’en doutais. Le « ça va » familial est très résistant.','Secret défense accepté.','Très bien. Je traduis médicalement par : « elle fait la forte ».']
+    ];
+
+    screen(
+      top(4)+hero('Trace 05','Consultation gynéco','Consultation fictive, non graphique : sept questions et un logiciel qui mélange obstinément médecine et plomberie.')+
+      '<div class="v36-clinic">'+
+        '<div class="v36-clinic-top"><span>CABINET · DOSSIER RAPHY</span><b id="v36System">SYSTÈME OK</b></div>'+
+        '<div class="v36-clinic-room">'+
+          '<div class="v36-clinic-screen">'+
+            '<div class="v36-file-tabs"><span class="on">PATIENTE</span><span>ANTÉCÉDENTS</span><span>???</span></div>'+
+            '<div class="v36-file-body" id="v36FileBody"><small>QUESTIONNAIRE EN COURS</small><div class="v36-file-lines"><i></i><i></i><i></i><i></i></div></div>'+
+          '</div>'+
+          '<div class="v36-doctor"><span>👩‍⚕️</span><div class="v36-doctor-badge">Dr. Patience<br><small>spécialité : survivre au logiciel</small></div></div>'+
+          '<button class="v36-clinic-printer" id="v36Printer">🖨️</button>'+
+          '<div class="v36-clinic-plant">🪴</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card v36-clinic-card">'+
+        '<div class="hud"><span>Question <b id="v36GQCount">1/7</b></span><span>Bug logiciel <b id="v36BugCount">0</b></span></div>'+
+        '<div class="dialogue" style="margin-top:14px"><div class="avatar">👩‍⚕️</div><div class="bubble" id="v36GQ"></div></div>'+
+        '<div id="v36GOpts" class="choices" style="margin-top:14px"></div>'+
+        '<div id="v36GReply"></div>'+
+      '</div>'+skip(4)
+    );
+    wireSkip(4);
+
+    $('#v36Printer').onclick=()=>{
+      glitches++;
+      $('#v36BugCount').textContent=glitches;
+      const papers=['ORDONNANCE : 1 siphon','RÉSULTAT : vasque double','CONTACT : Hamoud','ALERTE : Mehdi a touché aux réglages'];
+      toast(papers[(glitches-1)%papers.length],2400);
+      $('#v36Printer').animate([{transform:'translateY(0)'},{transform:'translateY(5px)'},{transform:'translateY(0)'}],{duration:220})
+    };
+
+    const glitchScreen=()=>{
+      const bug=q%2===1||q===4;
+      $('#v36System').textContent=bug?['ERREUR #VASQUE','ERREUR #SIPHON','ERREUR #MEHDI'][q%3]:'SYSTÈME OK';
+      $('#v36System').classList.toggle('bad',bug);
+      if(bug){
+        glitches++;$('#v36BugCount').textContent=glitches;
+        $('#v36FileBody').classList.add('glitch');
+        setTimeout(()=>$('#v36FileBody')?.classList.remove('glitch'),380)
+      }
+    };
+
+    const draw=()=>{
+      if(q>=QG.length)return report();
+      $('#v36GQCount').textContent=(q+1)+'/7';
+      $('#v36GQ').textContent=QG[q][0];
+      $('#v36GOpts').innerHTML=QG[q][1].map((x,j)=>'<button class="choice" data-v36g="'+j+'">'+x+'</button>').join('');
+      $('#v36GReply').innerHTML='';
+      $('#v36FileBody').innerHTML='<small>QUESTION '+String(q+1).padStart(2,'0')+'</small><div class="v36-file-lines"><i></i><i></i><i></i><i></i></div>';
+      glitchScreen();
+      $('[data-v36g]').forEach(b=>b.onclick=()=>{
+        const j=+b.dataset.v36g;
+        selected[q]=j;answered++;vib(6);
+        $('#v36GOpts').innerHTML='';
+        $('#v36GReply').innerHTML=
+          '<div class="dialogue v36-doc-reply" style="margin-top:14px"><div class="avatar">🩺</div><div class="bubble me">'+doctor[q][j]+'</div></div>'+
+          '<button class="btn secondary" id="v36GNext" style="margin-top:12px">Question suivante</button>';
+        $('#v36FileBody').innerHTML='<small>RÉPONSE ENREGISTRÉE</small><div class="v36-file-answer">'+['A','B','C'][j]+' · validée par un logiciel juridiquement douteux</div>';
+        $('#v36GNext').onclick=()=>{q++;draw()}
+      })
+    };
+
+    function report(){
+      const mehdiRisk=selected.filter(x=>x===2).length;
+      S.choices.v36_gyno={answers:selected,glitches};save();
+      $('#v36System').textContent='COMPTE RENDU';$('#v36System').classList.remove('bad');
+      $('#v36GQCount').textContent='7/7';$('#v36GQ').textContent='Consultation terminée. Le logiciel souhaite néanmoins revoir le lavabo.';
+      $('#v36GOpts').innerHTML='';
+      $('#v36FileBody').innerHTML='<small>DOSSIER CLÔTURÉ</small><div class="v36-file-stamp">VALIDÉ</div>';
+      $('#v36GReply').innerHTML=
+        '<div class="v36-med-report">'+
+          '<div class="eyebrow">COMPTE RENDU FICTIF</div>'+
+          '<div><span>Patiente</span><b>Raphy</b></div>'+
+          '<div><span>Consultation</span><b>Terminée avec dignité</b></div>'+
+          '<div><span>Lavabo</span><b>À revoir ailleurs</b></div>'+
+          '<div><span>Hamoud</span><b>Non joignable</b></div>'+
+          '<div><span>Mehdi</span><b>'+(mehdiRisk>=3?'Surveillance renforcée':'Surveillance standard')+'</b></div>'+
+          '<div><span>Bugs du logiciel</span><b>'+glitches+'</b></div>'+
+        '</div>'+
+        '<button class="btn" id="v36GEnd" style="margin-top:12px">Quitter le cabinet</button>';
+      $('#v36GEnd').onclick=()=>complete(4)
+    }
+    draw()
+  };
+
+  final = function(){
+    S.done[25]=true;save();
+    const remembered=[];
+    if(S.choices.v31_cellar)remembered.push(['📦','La cave']);
+    if(S.choices.v31_paint)remembered.push(['🎨','La peinture']);
+    if(S.choices.v31_sink)remembered.push(['🚰','Le lavabo']);
+    if(S.choices.v31_car)remembered.push(['🐾','La voiture']);
+    if(S.choices.v32_horror)remembered.push(['◌','Le couloir']);
+    if(S.choices.v32_house)remembered.push(['🚪','La maison']);
+    const base=[
+      ['👓','Le magasin de lunettes'],['💧','Deux Cristaline'],['🛞','La balançoire'],['🌊','Le 11/05'],
+      ['🚂','Marseille'],['☕','Les cafés'],['🐈','Hamoud']
+    ];
+    const constellation=[...base,...remembered].slice(0,12);
+
+    screen(
+      '<div class="v36-final">'+
+        '<div class="v36-final-sky">'+constellation.map((x,i)=>'<button class="v36-memory-star" data-v36mem="'+i+'" style="--i:'+i+';--x:'+(10+(i*37)%78)+'%;--y:'+(9+(i*29)%68)+'%"><span>'+x[0]+'</span></button>').join('')+'</div>'+
+        '<div class="v36-final-copy">'+
+          '<div class="eyebrow">DERNIÈRE PORTE</div>'+
+          '<h2>Tout était déjà là.</h2>'+
+          '<p id="v36FinalLine">Touche quelques traces. Puis garde le cœur appuyé.</p>'+
+          '<div class="v36-final-seen" id="v36FinalSeen">0 souvenir touché</div>'+
+        '</div>'+
+        '<button class="v36-hold-heart" id="v36Heart" aria-label="Maintenir le cœur"><span>♥</span><i id="v36HeartProgress"></i></button>'+
+        '<p class="v36-hold-caption" id="v36HeartCaption">Maintiens le cœur.</p>'+
+      '</div>',
+      'centered v36-final-screen'
+    );
+
+    let touched=new Set(),down=false,start=0,raf=0,revealed=false,pointerId=null;
+    $('[data-v36mem]').forEach(b=>b.onclick=()=>{
+      const n=+b.dataset.v36mem;
+      touched.add(n);b.classList.add('seen');vib(4);
+      $('#v36FinalSeen').textContent=touched.size+' souvenir'+(touched.size>1?'s':'')+' touché'+(touched.size>1?'s':'');
+      $('#v36FinalLine').textContent=constellation[n][1]+'. Un détail parmi d’autres, devenu important parce que c’était vous.';
+      if(touched.size===Math.min(5,constellation.length))toast('Tu peux continuer à les toucher… ou garder le cœur appuyé.')
+    });
+
+    const heart=$('#v36Heart'),progress=$('#v36HeartProgress');
+    const loop=()=>{
+      if(!down||revealed)return;
+      const p=Math.min(1,(performance.now()-start)/1900);
+      progress.style.setProperty('--p',(p*360)+'deg');
+      heart.style.transform='scale('+(1+p*.09)+')';
+      $('#v36HeartCaption').textContent=p<.35?'Maintiens…':p<.7?'Encore un peu…':'Presque…';
+      if(p>=1){revealed=true;down=false;vib([24,36,80]);return reveal()}
+      raf=requestAnimationFrame(loop)
+    };
+    const begin=e=>{
+      e.preventDefault();if(revealed)return;
+      pointerId=e.pointerId;
+      try{heart.setPointerCapture(pointerId)}catch{}
+      down=true;start=performance.now();loop()
+    };
+    const cancel=e=>{
+      if(revealed)return;
+      if(e&&pointerId!==null&&e.pointerId!==pointerId)return;
+      down=false;cancelAnimationFrame(raf);
+      try{if(pointerId!==null)heart.releasePointerCapture(pointerId)}catch{}
+      pointerId=null;progress.style.setProperty('--p','0deg');heart.style.transform='';$('#v36HeartCaption').textContent='Maintiens le cœur.'
+    };
+    heart.onpointerdown=begin;heart.onpointerup=cancel;heart.onpointercancel=cancel;
+
+    function reveal(){
+      const callback=[];
+      if(S.choices.v31_cellar?.bonus)callback.push('même les caves finissent par devenir un souvenir');
+      if(S.choices.v31_sink==='reversed')callback.push('même un lavabo monté à l’envers finit dans votre histoire');
+      if(S.choices.v32_horror)callback.push('même les pièces les plus étranges n’ont fait que répéter vos traces');
+      const extra=callback.length?'<p class="v36-callback-letter">'+callback.slice(0,2).join(' ; ')+'.</p>':'';
+      screen(
+        '<div class="v36-letter-scene">'+
+          '<div class="v36-letter-glow"></div>'+
+          '<div class="v36-final-letter">'+
+            '<div class="eyebrow">POUR RAPHY</div>'+
+            '<p>Ce jeu regarde beaucoup en arrière, mais pas pour rester dans le passé.</p>'+
+            '<p>Il regarde tous ces détails parce qu’ils racontent quelque chose que les grandes déclarations racontent moins bien : une histoire se construit aussi avec deux bouteilles d’eau, un parking, un fou rire, une journée compliquée, des travaux, un trajet et tous les moments auxquels personne n’aurait pensé donner un titre.</p>'+
+            extra+
+            '<p>J’aime ta force, ton courage, ton sourire, ta répartie et la place que tu as prise dans ma vie.</p>'+
+            '<p>Je ne sais pas exactement quelles seront les prochaines traces. Et c’est très bien comme ça.</p>'+
+            '<h1>Je t’aime ❤️</h1>'+
+            '<div class="actions"><button class="btn" id="v36Credits">Voir le générique</button><button class="btn secondary" id="v36Replay">Rejouer une trace</button></div>'+
+          '</div>'+
+        '</div>',
+        'centered v36-letter-screen'
+      );
+      $('#v36Credits').onclick=credits;$('#v36Replay').onclick=replay
+    }
+  };
+
+  credits = function(){
+    const choicesCount=Object.keys(S.choices||{}).length;
+    const doneCount=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+    const callbacks=[
+      S.choices.v31_cellar?'Cave : officiellement rangée':'Cave : dossier classé',
+      S.choices.v31_car?'Voiture : 100 % + 1 patte':'Voiture : propre en théorie',
+      S.choices.v32_house?'Maison : toujours suspecte':'Maison : non interrogée'
+    ];
+    screen(
+      '<div class="v36-credits">'+
+        '<div class="v36-credit-roll">'+
+          '<section><div class="eyebrow">SUR LES TRACES DE RAPHY</div><h1>Générique</h1><p>Une production excessivement personnelle.</p></section>'+
+          '<section><small>AVEC</small><h2>Raphy</h2><p>Héroïne principale · répartie · courage · spécialiste du « ça va ».</p></section>'+
+          '<section><small>CRÉÉ PAR</small><h2>Mehdi</h2><p>Scénario · souvenirs · confiance parfois injustifiée.</p></section>'+
+          '<section><small>DIRECTION DU CHAOS</small><h2>Hamoud</h2><p>Vol de joint · traces de pattes · surveillance de chantier · aucune déclaration officielle.</p></section>'+
+          '<section><small>MEILLEUR SECOND RÔLE LIQUIDE</small><h2>Deux Cristaline</h2><p>30 avril · retour inattendu · carrière fulgurante.</p></section>'+
+          '<section><small>ACCESSOIRES MÉMORABLES</small><p>Une balançoire en pneu · une nappe de plage · des sushi · un petit train · un lavabo trop sûr de lui.</p></section>'+
+          '<section><small>ÉTAT DU DOSSIER</small><div class="v36-credit-stats"><span><b>'+doneCount+'</b>/26 traces</span><span><b>'+choicesCount+'</b> choix mémorisés</span></div></section>'+
+          '<section><small>APRÈS ENQUÊTE</small><p>'+callbacks.join(' · ')+'</p></section>'+
+          '<section class="v36-credit-tender"><small>ET POUR LA SUITE</small><h2>À nous.</h2><p>Le prochain chapitre n’est pas encore écrit.</p></section>'+
+          '<section class="v36-credit-end"><h1>❤️</h1><p>fin de cette version<br>pas de l’histoire</p></section>'+
+        '</div>'+
+        '<div class="v36-credit-controls"><button class="btn" id="v36CreditReplay">Rejouer</button><button class="btn secondary" id="v36CreditFast">Accélérer</button></div>'+
+      '</div>',
+      'v36-credits-screen'
+    );
+    $('#v36CreditReplay').onclick=replay;
+    $('#v36CreditFast').onclick=()=>document.querySelector('.v36-credit-roll')?.classList.add('fast')
+  };
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
