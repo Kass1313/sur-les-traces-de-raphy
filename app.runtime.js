@@ -4379,6 +4379,169 @@ if(window.RaphyApp)window.RaphyApp.version='41';
 
 window.RaphyBuild='44';
 if(window.RaphyApp)window.RaphyApp.version='44';
+
+/* ===== V44 DESKTOP SAFARI MASKED CALL FIX ===== */
+(()=>{
+  const BUILD='44';
+  const previousUnknown=unknown;
+
+  unknown=function(){
+    // Always render the latest call UI when this scene is entered.
+    previousUnknown();
+
+    // V43 renders these controls. Use plain native onclick for desktop Safari.
+    const accept=$('[data-v43-answer="accept"]');
+    const decline=$('[data-v43-answer="decline"]');
+
+    if(accept){
+      // Replace the element to discard any older pointer/click listeners,
+      // then use one simple Safari-safe click handler.
+      const clean=accept.cloneNode(true);
+      accept.replaceWith(clean);
+      clean.onclick=()=>{
+        const next=$('#v43CallActions');
+        if(next){
+          const buttons=$('[data-v43-answer]',next);
+          buttons.forEach(b=>b.disabled=true);
+        }
+        const status=$('#v43CallStatus');
+        if(status)status.textContent='Appel décroché…';
+        // Re-enter through a synthetic marker understood below.
+        document.dispatchEvent(new CustomEvent('raphy-v44-answer',{detail:{refused:false}}))
+      }
+    }
+
+    if(decline){
+      const clean=decline.cloneNode(true);
+      decline.replaceWith(clean);
+      clean.onclick=()=>{
+        const next=$('#v43CallActions');
+        if(next){
+          const buttons=$('[data-v43-answer]',next);
+          buttons.forEach(b=>b.disabled=true);
+        }
+        const status=$('#v43CallStatus');
+        if(status)status.textContent='Appel refusé…';
+        document.dispatchEvent(new CustomEvent('raphy-v44-answer',{detail:{refused:true}}))
+      }
+    }
+  };
+
+  // Instead of trying to reach a closure from an older build, the answer event
+  // simply re-renders scene 20 in a deterministic conversation state.
+  const buildConversation=(refused)=>{
+    const firstChoice=['tu l’as clashé','tu as fait comme si tu n’avais rien remarqué','tu lui as laissé croire qu’il avait le dernier mot'][S.choices.story0??0];
+    const alg=S.choices.algeria;
+    const remembered=[];
+    if(S.choices.v31_sink==='reversed')remembered.push('le rouge et le bleu');
+    if(S.choices.v31_car)remembered.push('la patte laissée sur la voiture');
+    if(S.choices.v31_paint)remembered.push('les retouches du mur');
+    if(S.choices.v32_horror)remembered.push('le couloir');
+    if(S.choices.v32_house)remembered.push('la pièce qui changeait');
+    let msgIndex=0,entered='';
+    const messages=[
+      'Je me souviens du magasin de lunettes.',
+      'Dans ta version, '+firstChoice+'.',
+      'Je me souviens des deux bouteilles. Du pneu. De la plage.',
+      remembered.length?'Je me souviens aussi de '+remembered.slice(0,3).join(', ')+'.':'Je me souviens des détails que tu pensais inutiles.',
+      alg===1?'Et de cette offre immobilière où Mehdi devait finalement gérer cinq enfants.':alg===0?'Et tu as refusé la brochure Algérie sans négocier les frais de dossier.':'Et la brochure immobilière reste juridiquement discutable.',
+      'Mais il manque une vérification.'
+    ];
+
+    screen(
+      top(20)+hero('Trace 21','Numéro masqué',refused?'Tu as refusé. Pourtant, le message est déjà là.':'Tu as décroché. Il n’y a aucune voix.')+
+      '<div class="v43-phone">'+
+        '<div class="v43-phone-top"><span>19:47</span><b>MASQUÉ</b><span>•••</span></div>'+
+        '<div class="v43-thread" id="v44Thread"><div class="v43-msg in">'+(refused?'Refuser était logique.':'Tu as décroché.')+'</div></div>'+
+        '<div class="v43-controls" id="v44Controls"><button type="button" class="btn" id="v44Next">Lire le message suivant</button></div>'+
+      '</div>'+skip(20)
+    );
+    wireSkip(20);
+
+    const scroll=()=>{const t=$('#v44Thread');if(t)t.scrollTop=t.scrollHeight};
+    const showNext=()=>{
+      const thread=$('#v44Thread'),btn=$('#v44Next');
+      if(!thread||!btn)return;
+      if(msgIndex>=messages.length)return askDate();
+      const m=document.createElement('div');
+      m.className='v43-msg in';m.textContent=messages[msgIndex++];
+      thread.append(m);scroll();vib(4);
+      btn.textContent=msgIndex<messages.length?'Lire la suite':'Répondre à la vérification';
+      if(msgIndex===messages.length)btn.onclick=askDate
+    };
+    $('#v44Next').onclick=showNext;
+
+    function askDate(){
+      const thread=$('#v44Thread');if(!thread)return;
+      thread.insertAdjacentHTML('beforeend','<div class="v43-msg in important">Premier vrai rendez-vous surprise. Jour + mois.</div>');
+      scroll();
+      $('#v44Controls').innerHTML=
+        '<div class="v43-date"><div class="eyebrow">JJMM</div>'+
+        '<div class="v43-dots" id="v44Dots"><i></i><i></i><i></i><i></i></div>'+
+        '<div class="v43-keypad">'+
+        [1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" data-v44-key="'+n+'">'+n+'</button>').join('')+
+        '<button type="button" data-v44-key="clear">C</button><button type="button" data-v44-key="0">0</button><button type="button" data-v44-key="back">⌫</button></div>'+
+        '<button type="button" class="btn" id="v44Send" disabled>Envoyer</button><div class="v43-error" id="v44Error"></div></div>';
+
+      const paint=()=>{
+        $('#v44Dots i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $('#v44Send').disabled=entered.length!==4;
+        $('#v44Error').textContent=''
+      };
+      $('[data-v44-key]').forEach(b=>b.onclick=()=>{
+        const k=b.dataset.v44Key;
+        if(k==='clear')entered='';
+        else if(k==='back')entered=entered.slice(0,-1);
+        else if(entered.length<4)entered+=k;
+        paint();vib(3)
+      });
+      $('#v44Send').onclick=()=>{
+        if(entered!=='1105'){
+          $('#v44Error').textContent='Indice : la plage, les sushi, le premier baiser.';
+          return
+        }
+        $('#v44Thread').insertAdjacentHTML('beforeend','<div class="v43-msg out">1105</div>');
+        $('#v44Controls').innerHTML='<button type="button" class="btn secondary" id="v44Reveal">Lire la réponse</button>';
+        scroll();
+        $('#v44Reveal').onclick=()=>reveal(0)
+      };
+      paint()
+    }
+
+    const lines=['Bien.','Tu pensais chercher ce que la maison avait caché.','Elle n’a rien caché.','Elle a appris à te reconnaître à travers ce que tu laisses derrière toi.','Des traces.'];
+    function reveal(i){
+      const thread=$('#v44Thread');if(!thread)return;
+      const m=document.createElement('div');
+      m.className='v43-msg in '+(i===lines.length-1?'final':'');m.textContent=lines[i];
+      thread.append(m);scroll();
+      if(i<lines.length-1){
+        $('#v44Controls').innerHTML='<button type="button" class="btn secondary" id="v44RevealNext">Continuer</button>';
+        $('#v44RevealNext').onclick=()=>reveal(i+1)
+      }else{
+        $('#v44Controls').innerHTML='<button type="button" class="btn danger" id="v44Hangup">Raccrocher</button>';
+        $('#v44Hangup').onclick=()=>{
+          screen('<div class="v39-after-call"><div class="v39-glitch-word">TRACE</div><p>Une serrure vient de s’ouvrir quelque part dans la maison.</p><button type="button" class="btn secondary" id="v44Find">Trouver laquelle</button></div>','centered horror');
+          $('#v44Find').onclick=()=>complete(20)
+        }
+      }
+    }
+  };
+
+  document.addEventListener('raphy-v44-answer',e=>buildConversation(!!e.detail?.refused));
+
+  // Important: the app restores a saved scene before late overrides are loaded.
+  // If Safari opened directly on scene 20, redraw it once after the whole runtime
+  // has finished loading so the user gets V44 rather than an older call screen.
+  setTimeout(()=>{
+    if(S.unlocked&&S.storyDone&&Number(S.current)===20){
+      try{route(20)}catch(err){console.error('V44 scene 20 reconcile',err)}
+    }
+  },0);
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
