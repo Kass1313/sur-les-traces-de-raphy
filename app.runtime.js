@@ -1836,6 +1836,192 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V28 FAMILY & TRAVEL POLISH ===== */
+(()=>{
+  mojito = function(){
+    let phase=0,muddle=0,step=0,stirs=0;
+    const order=['ice','sweet','water','stir'];
+    screen(
+      top(14)+hero('Trace 15','Virgin mojito : deuxième chance','Cette fois, on écrase vraiment la menthe. Oui, ce détail comptait probablement.')+
+      '<div class="v28-mojito-stage">'+
+        '<div class="v28-bar-glow"></div>'+
+        '<div class="v28-mojito-glass" id="v28Glass"><div class="v28-mojito-bottom" id="v28Bottom"><span class="lime">🍋‍🟩</span><span class="mint">🌿</span></div><div id="v28DrinkLayers"></div><div class="v28-straw">╱</div></div>'+
+        '<button class="v28-muddler" id="v28Muddle">▮</button>'+
+        '<div class="v28-bar-label">BAR DE RAPHY</div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v28MojitoPhase">1/3 · écraser</span><span id="v28MojitoStat">0/8</span></div><div class="meter"><i id="v28MojitoBar"></i></div><p class="caption" id="v28MojitoCopy">Tape sur le pilon pour écraser citron vert + menthe.</p><div id="v28MojitoActions"></div></div>'+skip(14)
+    );
+    wireSkip(14);
+
+    $('#v28Muddle').onclick=()=>{
+      if(phase!==0)return;
+      muddle++;vib(6);
+      $('#v28MojitoStat').textContent=Math.min(muddle,8)+'/8';
+      $('#v28MojitoBar').style.width=Math.min(100,muddle/8*100)+'%';
+      $('#v28Bottom').animate([{transform:'translateY(0)'},{transform:'translateY(6px) scale(.97)'},{transform:'translateY(0)'}],{duration:180});
+      if(muddle===4)toast('Voilà. La menthe est enfin au courant qu’elle participe au mojito.');
+      if(muddle>=8){phase=1;setTimeout(build,350)}
+    };
+
+    function build(){
+      $('#v28Muddle').style.display='none';
+      $('#v28MojitoPhase').textContent='2/3 · construire';
+      $('#v28MojitoStat').textContent='0/4';
+      $('#v28MojitoBar').style.width='0%';
+      $('#v28MojitoCopy').textContent='Ajoute les éléments dans le bon ordre.';
+      $('#v28MojitoActions').innerHTML=
+        '<div class="item-grid">'+
+          '<button class="item big" data-v28drink="sweet">🍯 Douceur</button>'+
+          '<button class="item big" data-v28drink="water">💧 Eau gazeuse</button>'+
+          '<button class="item big" data-v28drink="ice">🧊 Glace</button>'+
+          '<button class="item big" data-v28drink="stir">🥄 Mélanger</button>'+
+        '</div>';
+      $('[data-v28drink]').forEach(b=>b.onclick=()=>{
+        const k=b.dataset.v28drink;
+        if(k!==order[step])return toast(step===0?'La glace d’abord. Sinon le bar imaginaire retire une étoile.':'Pas encore. Le verre demande un minimum d’organisation.');
+        b.disabled=true;b.classList.add('selected');
+        if(k==='ice')addLayer('v28-ice','◆ ◆ ◆');
+        if(k==='sweet')addLayer('v28-sweet','');
+        if(k==='water')addLayer('v28-water','');
+        if(k==='stir'){phase=2;startStir();return}
+        step++;
+        $('#v28MojitoStat').textContent=step+'/4';
+        $('#v28MojitoBar').style.width=(step/4*100)+'%'
+      })
+    }
+
+    function addLayer(cls,txt){
+      const d=document.createElement('div');d.className='v28-drink-layer '+cls;d.textContent=txt;$('#v28DrinkLayers').append(d);
+      d.animate([{transform:'scaleY(0)',opacity:.3},{transform:'scaleY(1)',opacity:1}],{duration:380,fill:'both'})
+    }
+
+    function startStir(){
+      $('#v28MojitoPhase').textContent='3/3 · mélanger';
+      $('#v28MojitoStat').textContent='0/5 tours';
+      $('#v28MojitoCopy').textContent='Fais cinq petits tours. Pas une centrifugeuse.';
+      $('#v28MojitoActions').innerHTML='<button class="btn" id="v28Stir">Faire un tour 🥄</button>';
+      $('#v28Stir').onclick=()=>{
+        stirs++;vib(5);
+        $('#v28Glass').animate([{transform:'rotate(0)'},{transform:'rotate(2deg)'},{transform:'rotate(-2deg)'},{transform:'rotate(0)'}],{duration:260});
+        $('#v28MojitoStat').textContent=stirs+'/5 tours';$('#v28MojitoBar').style.width=(stirs/5*100)+'%';
+        if(stirs>=5){
+          $('#v28Stir').disabled=true;
+          toast('Cette fois : menthe écrasée, ordre respecté. Le Thermomix est officiellement innocent.');
+          setTimeout(()=>complete(14),900)
+        }
+      }
+    }
+  };
+
+  customsGame = function(){
+    const items=[
+      ['Passeport ❤️',1,'ok'],['Pâtes non cassées 🇮🇹',2,'ok'],['Poêle à paella 🇪🇸',4,'ok'],
+      ['Brochure Mehdi Immobilier 🇩🇿',7,'sus'],['Hamoud dans la valise 🐈',6,'sus'],
+      ['Doudou cochon 🐷',2,'ok'],['Trois kilos de “au cas où”',5,'sus'],['Chargeur oublié',1,'ok']
+    ];
+    let selected=[],phase=0,q=0,stampHits=0;
+    const questions=[
+      ['Vous cassez les pâtes avant cuisson ?',['Oui, pour gagner du temps.','Non. Même Hamoud sait que non.','Uniquement sous ordre écrit.'],1],
+      ['La paella italienne, concept ou erreur de frontière ?',['Concept visionnaire.','Erreur de frontière.','Je rends mon passeport.'],1],
+      ['Cette brochure immobilière est-elle équilibrée pour Raphy ?',['Parfaitement.','Absolument pas. Mehdi est le seul gagnant.','Il manque juste un jacuzzi.'],1]
+    ];
+
+    screen(
+      top(16)+hero('Trace 17','Douanes de l’amour','Prépare la valise, passe le contrôle, puis récupère le tampon. Aucun pays n’est la blague. Le dossier de Mehdi, oui.')+
+      '<div class="v28-airport"><div class="v28-departures">DÉPARTS <span>ITALIE · ESPAGNE · ALGÉRIE</span></div><div class="suitcase-stage"><div class="suitcase"><div id="packed" class="packed"></div></div><div class="v28-scale"><b id="weight">0</b><span>/12 kg</span></div></div></div>'+
+      '<div class="item-grid" id="v28PackItems">'+items.map((x,i)=>'<button class="item big" data-pack="'+i+'">'+x[0]+'<br><small>'+x[1]+' kg</small></button>').join('')+'</div>'+
+      '<div class="card"><div class="hud"><span id="packCount">0 objet</span><span id="v28CustomPhase">VALISE</span></div><button class="btn" id="customNext">Passer au contrôle</button><div id="customQ"></div></div>'+skip(16)
+    );
+    wireSkip(16);
+
+    $('[data-pack]').forEach(b=>b.onclick=()=>{
+      if(phase!==0)return;
+      const n=+b.dataset.pack;
+      if(selected.includes(n)){selected=selected.filter(x=>x!==n);b.classList.remove('selected')}
+      else{selected.push(n);b.classList.add('selected')}
+      const w=selected.reduce((s,x)=>s+items[x][1],0);
+      $('#weight').textContent=w;$('#packCount').textContent=selected.length+' objet'+(selected.length>1?'s':'');
+      $('#packed').innerHTML=selected.map(x=>'<span>'+items[x][0].split(' ')[0]+'</span>').join('');
+      $('.v28-scale')?.classList.toggle('over',w>12)
+    });
+
+    $('#customNext').onclick=()=>{
+      const w=selected.reduce((s,x)=>s+items[x][1],0);
+      if(w>12)return toast('Valise en surcharge. Même l’amour respecte 12 kg fictifs.');
+      if(selected.length<4)return toast('Il manque trop de choses. Même Hamoud trouve cette valise optimiste.');
+      phase=1;$('#customNext').style.display='none';$('[data-pack]').forEach(x=>x.disabled=true);$('#v28CustomPhase').textContent='CONTRÔLE';drawQ()
+    };
+
+    function drawQ(){
+      if(q>=questions.length)return passport();
+      const z=questions[q];
+      $('#customQ').innerHTML='<div class="dialogue" style="margin-top:14px"><div class="avatar">🛂</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v28cq="'+j+'">'+x+'</button>').join('')+'</div>';
+      $('[data-v28cq]').forEach(b=>b.onclick=()=>{
+        const j=+b.dataset.v28cq;
+        toast(j===z[2]?['L’agent approuve. Les pâtes aussi.','Frontière culinaire rétablie.','Enfin une réponse juridiquement saine.'][q]:'L’agent écrit quelque chose. Ça n’a pas l’air flatteur.');
+        q++;setTimeout(drawQ,480)
+      })
+    }
+
+    function passport(){
+      phase=2;$('#v28CustomPhase').textContent='TAMPON';
+      $('#customQ').innerHTML='<div class="v28-passport"><div class="v28-passport-head"><span>♥</span><b>PASSEPORT DES SOUVENIRS</b></div><div class="v28-passport-page"><small>DESTINATION</small><h3>À deux</h3><button class="v28-stamp-target" id="v28StampTarget">TAMPONNER ICI</button><div id="v28Stamped"></div></div></div><p class="caption">Tape trois fois sur le tampon. Le douanier est très procédurier.</p>';
+      $('#v28StampTarget').onclick=()=>{
+        stampHits++;vib(8);
+        $('#v28StampTarget').animate([{transform:'scale(1)'},{transform:'scale(.92) rotate(-3deg)'},{transform:'scale(1)'}],{duration:180});
+        if(stampHits===1)toast('Un tampon. Il en manque deux parce que l’administration aime les répétitions.');
+        if(stampHits===2)toast('Deux. Encore un et vous êtes officiellement beaucoup trop tamponnés.');
+        if(stampHits>=3){
+          $('#v28Stamped').innerHTML='<div class="v28-stamp-mark">VALIDÉ<br><small>avec réserves sur Mehdi</small></div>';
+          $('#v28StampTarget').disabled=true;
+          setTimeout(()=>complete(16),1000)
+        }
+      }
+    }
+  };
+
+  algeria = function(){
+    let found=0;
+    const flags=[
+      ['kids','Cinq enfants',22,23,'Raphy vient de transmettre l’intégralité du service parental à Mehdi.'],
+      ['home','Raphy reste à la maison',62,24,'Clause refusée. Les sorties et les amis ne nécessitent pas l’autorisation de Mehdi.'],
+      ['friends','Pas d’amis sauf Mehdi',18,62,'Refusé avec une force administrative remarquable.'],
+      ['mehdi','Mehdi très détendu',62,64,'Le principal bénéficiaire du contrat est curieusement détendu. Étonnant.']
+    ];
+    screen(
+      top(17)+hero('Trace 18','Mehdi Immobilier™','Inspecte cette offre totalement objective écrite par son principal bénéficiaire. Le but : trouver les quatre clauses absurdes.')+
+      '<div class="v28-brochure">'+
+        '<div class="v28-brochure-top"><span>OFFRE EXCLUSIVE</span><b>Appartement 2 pièces · Algérie</b></div>'+
+        '<div class="v28-brochure-photo"><div class="v28-balcony">TERRASSE ✦</div><div class="v28-flat">⌂</div></div>'+
+        '<div class="v28-brochure-copy"><h3>La vie idéale selon Mehdi*</h3><p>*étude réalisée par Mehdi, relue par Mehdi, validée provisoirement par Mehdi.</p></div>'+
+        flags.map((x,i)=>'<button class="v28-redflag" data-v28flag="'+i+'" style="left:'+x[2]+'%;top:'+x[3]+'%"><span>?</span></button>').join('')+
+        '<div id="v28Refusals"></div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v28Flags">0/4 clauses repérées</span><span>inspectrice : Raphy</span></div><p class="caption">Touche les quatre zones suspectes de la brochure.</p><div id="v28ContractEnd"></div></div>'+skip(17)
+    );
+    wireSkip(17);
+
+    $('[data-v28flag]').forEach(b=>b.onclick=()=>{
+      if(b.disabled)return;b.disabled=true;const i=+b.dataset.v28flag;found++;b.classList.add('caught');b.innerHTML='✕';
+      const f=flags[i];
+      $('#v28Refusals').insertAdjacentHTML('beforeend','<div class="v28-refusal" style="left:'+f[2]+'%;top:'+f[3]+'%">REFUSÉ</div>');
+      $('#v28Flags').textContent=found+'/4 clauses repérées';
+      toast(f[4],3200);
+      if(found===4)setTimeout(contract,650)
+    });
+
+    function contract(){
+      $('#v28ContractEnd').innerHTML='<div class="eyebrow">CONTRE-PROPOSITION DE RAPHY</div><div class="choices" style="margin-top:10px"><button class="choice" data-v28contract="0">Mehdi gère les cinq enfants pendant 18 ans.</button><button class="choice" data-v28contract="1">Raphy garde sa liberté et Mehdi garde sa brochure.</button><button class="choice" data-v28contract="2">Hamoud devient agent immobilier. Au point où on en est.</button></div>';
+      $('[data-v28contract]').forEach(b=>b.onclick=()=>{
+        const v=+b.dataset.v28contract;S.choices.algeria=v;save();
+        toast(['L’offre vient de perdre absolument toute rentabilité pour Mehdi.','Contrat équilibré. La brochure se désintègre émotionnellement.','Hamoud exige 12 % de commission en croquettes.'][v],3000);
+        setTimeout(()=>complete(17),850)
+      })
+    }
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
