@@ -527,3 +527,8 @@ input,textarea,select{font-size:16px!important}
 @keyframes v39Msg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes v39Glitch{0%,90%,100%{transform:none}92%{transform:translateX(3px)}95%{transform:translateX(-3px)}}
 @media(max-width:430px){.v39-call{min-height:440px}.v39-thread{min-height:330px;max-height:52svh}.v39-call-btn{width:66px;height:66px}}
+
+
+/* ===== V41 FINAL RELIABILITY ===== */
+.v40-final-fallback{position:relative;z-index:6;margin-top:12px;min-width:min(82vw,300px);animation:v41FallbackIn .3s ease both}
+@keyframes v41FallbackIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
