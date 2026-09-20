@@ -3621,7 +3621,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#v36GReply').innerHTML='';
       $('#v36FileBody').innerHTML='<small>QUESTION '+String(q+1).padStart(2,'0')+'</small><div class="v36-file-lines"><i></i><i></i><i></i><i></i></div>';
       glitchScreen();
-      $('[data-v36g]').forEach(b=>b.onclick=()=>{
+      $$('[data-v36g]').forEach(b=>b.onclick=()=>{
         const j=+b.dataset.v36g;
         selected[q]=j;answered++;vib(6);
         $('#v36GOpts').innerHTML='';
@@ -3687,7 +3687,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
 
     let touched=new Set(),down=false,start=0,raf=0,revealed=false,pointerId=null;
-    $('[data-v36mem]').forEach(b=>b.onclick=()=>{
+    $$('[data-v36mem]').forEach(b=>b.onclick=()=>{
       const n=+b.dataset.v36mem;
       touched.add(n);b.classList.add('seen');vib(4);
       $('#v36FinalSeen').textContent=touched.size+' souvenir'+(touched.size>1?'s':'')+' touché'+(touched.size>1?'s':'');
@@ -4037,13 +4037,13 @@ if(window.RaphyApp)window.RaphyApp.version='37';
       const paint=()=>{
         entered=(input.value||entered).replace(/\D/g,'').slice(0,4);
         input.value=entered;
-        $('#v39DateDisplay i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $$('#v39DateDisplay i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
         send.disabled=entered.length!==4;
         $('#v39DateError').textContent=''
       };
       input.addEventListener('input',paint);
       input.addEventListener('keydown',e=>{if(e.key==='Enter'&&entered.length===4)validateDate()});
-      $('[data-v39key]').forEach(b=>b.onclick=()=>{
+      $$('[data-v39key]').forEach(b=>b.onclick=()=>{
         const k=b.dataset.v39key;
         if(k==='clear')entered='';
         else if(k==='back')entered=entered.slice(0,-1);
@@ -4121,8 +4121,8 @@ if(window.RaphyApp)window.RaphyApp.version='37';
   window.RaphyBuild=BUILD;
 })();
 
-window.RaphyBuild='40';
-if(window.RaphyApp)window.RaphyApp.version='40';
+window.RaphyBuild='41';
+if(window.RaphyApp)window.RaphyApp.version='41';
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
