@@ -1,4 +1,4 @@
-const CACHE='raphy-v29-school-coffee';
+const CACHE='raphy-v30-hospital-kids';
 const CORE=['./','./index.html','./styles.bundle.css','./app.runtime.js','./manifest.json','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()]))});
