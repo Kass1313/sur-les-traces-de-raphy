@@ -1251,6 +1251,195 @@ route=function(i){
 /* ===== robust single boot ===== */
 try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}catch(e){console.error('Core boot failed',e);try{lock()}catch(e2){console.error('Lock fallback failed',e2)}}
 
+
+/* ===== V24 SAFE EXTRAS ===== */
+(()=>{
+  const PREF_KEY='raphy-prefs-v24';
+  let prefs;
+  try{prefs={sound:true,motion:true,fear:'normal',...JSON.parse(localStorage.getItem(PREF_KEY)||'{}')}}catch{prefs={sound:true,motion:true,fear:'normal'}}
+  const savePrefs=()=>{try{localStorage.setItem(PREF_KEY,JSON.stringify(prefs))}catch{}};
+
+  // Expose a tiny safe API for later QA without exposing personal content.
+  window.RaphyApp={
+    version:'24',
+    getState:()=>JSON.parse(JSON.stringify(S)),
+    go:i=>route(Math.max(0,Math.min(25,Number(i)||0))),
+    replay:()=>replay(),
+    reset:()=>{localStorage.removeItem(KEY);location.reload()}
+  };
+
+  // Scene metadata + act separators.
+  const actMap={
+    0:['ACTE I','Ce qui commence sans prévenir','Des souvenirs ordinaires. Enfin… presque.','✦'],
+    5:['ACTE II','La vraie vie est déjà un escape game','Cave, plans, peinture, lavabo. Aucun manuel ne survivra.','⌂'],
+    12:['ACTE III','Ceux qui n’ont jamais sommeil','Deux mini-héros fictifs. Beaucoup trop d’énergie.','☾'],
+    18:['ACTE IV','Quand la maison commence à répondre','À partir d’ici, certains détails cessent d’être innocents.','◌'],
+    21:['ACTE V','Tout était déjà là','Les détails reviennent. Cette fois, ils ont une raison.','♥'],
+    23:['ÉPILOGUE','Ce qui reste quand les jeux s’arrêtent','Plus de chrono. Plus de score. Juste vous.','∞']
+  };
+  const hintMap={
+    0:['Garde la jauge au milieu, pas au maximum.','Le rythme régulier compte plus que la vitesse.','Pour la conduite, change de voie avant que l’obstacle arrive en bas.'],
+    1:['Le bon moment arrive quand l’anneau devient doré.','Le nez et la démangeaison sont surtout des pièges.','Cinq respirations bien calées suffisent.'],
+    2:['Maintiens le bouton, puis relâche près de la durée cible.','Le milieu de la jauge est ton meilleur repère.','Mieux vaut un peu court qu’un maintien interminable.'],
+    3:['Commence par centrer le disque.','L’outil disparu n’est pas vraiment très loin. Hamoud semble confortable.','Pour stabiliser, vise la zone 78–86.'],
+    4:['Il n’y a pas de “bonne” personnalité de réponse.','Lis surtout les réactions de la médecin : le logiciel mélange tout.','Sept questions, puis tu peux sortir avec ta dignité.'],
+    5:['Sélectionne d’abord un objet, puis son bac.','Les câbles vont au garage, les outils aux travaux.','Hamoud refuse d’être rangé comme un objet normal.'],
+    6:['Le client adore les contradictions. Cherche le compromis.','Une demi-cloison vaut mieux que tout ouvrir ou tout fermer.','Les placards intégrés rendent le rangement presque invisible.'],
+    7:['Peins en balayant le mur plutôt qu’en restant au même endroit.','Les coulures arrivent si tu insistes trop sur une zone.','Si Hamoud laisse des pattes, touche chaque trace directement.'],
+    8:['Suis l’ordre de montage affiché.','Le petit joint a disparu au moment le plus prévisible possible.','À la fin, le vrai piège est l’inversion chaud/froid.'],
+    9:['Observe toute la séquence avant de reproduire.','Un mauvais bouton remet seulement la saisie à zéro.','La troisième manche est la plus longue : mémorise par groupes.'],
+    10:['Frotte vraiment la carrosserie au doigt.','Ensuite, chaque objet de l’intérieur est cliquable.','À 99 %, cherche une minuscule tache près de la voiture.'],
+    11:['Récupère les six affaires avant de rester discuter.','Les deux adultes près du portail sont volontairement des pièges.','Les objets sont répartis sur deux rangées.'],
+    12:['Les réponses changent surtout l’humour et la jauge de sommeil.','Après les sept excuses, il reste encore à sortir de la chambre.','En mode furtif, tape quand le bouton est le plus petit.'],
+    13:['Réponds aux sept questions, puis cherche l’équipement.','Le masque n’est pas perdu : Hamoud sait exactement où il est.','Touche le chat avant de tenter de récupérer le masque.'],
+    14:['L’ordre des ingrédients compte.','Glace et menthe ne servent pas seulement à décorer.','Ce virgin mojito a surtout besoin qu’on suive enfin une logique.'],
+    15:['Vanille, lait, glace, espresso, caramel.','Les couches doivent rester visibles.','Les demandes clients après la boisson sont faites pour être absurdes.'],
+    16:['La valise doit rester sous 12 kg.','Prends au moins quatre objets avant le contrôle.','La brochure immobilière de Mehdi n’est pas obligatoire. Vraiment pas.'],
+    17:['Cette scène est une satire du plan de Mehdi, pas une proposition sérieuse.','Choisis la réponse qui te ressemble le plus.','Aucune option ne t’engage à vivre avec cinq enfants dans deux pièces.'],
+    18:['Déplace la lampe avec ton doigt.','Il y a trois marques cachées dans la pièce.','L’autre lampe peut détourner une partie des ailes.'],
+    19:['Observe d’abord, puis ferme les yeux.','Une seule chose change à chaque tour.','La chaise, le cadre, la lampe, la porte et… un portrait très officiel.'],
+    20:['Le message demande seulement jour + mois.','Premier vrai rendez-vous surprise : plage, sushi, premier baiser.','La réponse attendue est 1105.'],
+    22:['Juge chaque dossier séparément.','Les preuves viennent de niveaux que tu as déjà joués.','Le verdict final dépend de tes réponses, pas d’une bonne solution unique.']
+  };
+
+  let currentScene=Number(S.current)||0;
+  let hintTimer=null;
+  let hintLevel=0;
+  let audioCtx=null;
+
+  const applyPrefs=()=>{
+    document.documentElement.classList.toggle('raphy-motion-reduced',!prefs.motion);
+    document.documentElement.classList.toggle('raphy-fear-reduced',prefs.fear==='reduced');
+  };
+  applyPrefs();
+
+  const audio=()=>{
+    if(!prefs.sound)return null;
+    try{
+      if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended')audioCtx.resume();
+      return audioCtx
+    }catch{return null}
+  };
+  const beep=(freq=480,dur=.055,gain=.018)=>{
+    const c=audio();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(gain,c.currentTime+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+    o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur+.02)
+  };
+
+  const makeControls=()=>{
+    if(document.querySelector('.v24-controls'))return;
+    const box=document.createElement('div');
+    box.className='v24-controls';
+    box.innerHTML='<button class="v24-round" id="v24Pause" aria-label="Pause">Ⅱ</button><button class="v24-round" id="v24Sound" aria-label="Son">♪</button><button class="v24-round" id="v24Settings" aria-label="Réglages">⚙</button>';
+    document.body.append(box);
+    $('#v24Pause').onclick=openPause;
+    $('#v24Sound').onclick=()=>{prefs.sound=!prefs.sound;savePrefs();syncControls();if(prefs.sound)beep(660,.08,.02)};
+    $('#v24Settings').onclick=openSettings;
+    syncControls()
+  };
+
+  const syncControls=()=>{
+    const box=document.querySelector('.v24-controls');
+    if(box)box.style.display=S.unlocked?'flex':'none';
+    const snd=$('#v24Sound');
+    if(snd)snd.textContent=prefs.sound?'♪':'∅'
+  };
+
+  function openPause(){
+    modal.hidden=false;
+    modal.innerHTML='<div class="modal-card v24-modal"><div class="eyebrow">PAUSE</div><h2>La maison attend.</h2><p class="storyline">Même Hamoud a arrêté de toucher aux trucs. Enfin, normalement.</p><div class="actions"><button class="btn" id="v24Resume">Reprendre</button><button class="btn secondary" id="v24Restart">Recommencer cette trace</button><button class="btn secondary" id="v24Replay">Traces débloquées</button><button class="btn secondary" id="v24SetFromPause">Réglages</button></div></div>';
+    $('#v24Resume').onclick=()=>{modal.hidden=true;modal.innerHTML=''};
+    $('#v24Restart').onclick=()=>{modal.hidden=true;modal.innerHTML='';route(currentScene)};
+    $('#v24Replay').onclick=()=>{modal.hidden=true;modal.innerHTML='';replay()};
+    $('#v24SetFromPause').onclick=openSettings
+  }
+
+  function openSettings(){
+    modal.hidden=false;
+    modal.innerHTML='<div class="modal-card v24-modal"><div class="eyebrow">RÉGLAGES</div><h2>À ta façon.</h2><div class="v24-setting"><div><b>Son</b><small>Effets discrets générés par le navigateur.</small></div><button class="btn small secondary" id="setSound">'+(prefs.sound?'Activé':'Coupé')+'</button></div><div class="v24-setting"><div><b>Animations</b><small>Réduire les mouvements si tu préfères.</small></div><button class="btn small secondary" id="setMotion">'+(prefs.motion?'Normales':'Réduites')+'</button></div><div class="v24-setting"><div><b>Horreur</b><small>Réduit insectes, ombre et effets soudains.</small></div><button class="btn small secondary" id="setFear">'+(prefs.fear==='reduced'?'Réduite':'Normale')+'</button></div><button class="btn" id="setClose" style="margin-top:14px">Fermer</button></div>';
+    $('#setSound').onclick=()=>{prefs.sound=!prefs.sound;savePrefs();openSettings();syncControls()};
+    $('#setMotion').onclick=()=>{prefs.motion=!prefs.motion;savePrefs();applyPrefs();openSettings()};
+    $('#setFear').onclick=()=>{prefs.fear=prefs.fear==='reduced'?'normal':'reduced';savePrefs();applyPrefs();openSettings()};
+    $('#setClose').onclick=()=>{modal.hidden=true;modal.innerHTML=''}
+  }
+
+  function showAct(i,def,continueFn){
+    screen('<div class="v24-act"><div class="v24-act-symbol">'+def[3]+'</div><div class="eyebrow">'+def[0]+'</div><h1>'+def[1]+'</h1><div class="v24-rule"></div><p>'+def[2]+'</p><button class="btn secondary" id="v24ActGo">Continuer</button></div>','centered');
+    let gone=false;
+    const go=()=>{if(gone)return;gone=true;continueFn()};
+    $('#v24ActGo').onclick=go;
+    setTimeout(go,i>=18?2900:2200)
+  }
+
+  function scheduleHint(i){
+    clearTimeout(hintTimer);hintLevel=0;
+    document.querySelector('.v24-hint')?.remove();
+    if(!hintMap[i]||[21,23,24,25].includes(i))return;
+    hintTimer=setTimeout(()=>{
+      if(Number(S.current)!==i)return;
+      const b=document.createElement('button');
+      b.className='v24-hint';
+      b.textContent='Un indice ?';
+      document.body.append(b);
+      b.onclick=()=>{
+        const hints=hintMap[i];
+        toast(hints[Math.min(hintLevel,hints.length-1)],3600);
+        hintLevel++;
+        b.textContent=hintLevel>=3?'Indice max':'Encore un indice ?';
+        beep(620,.05,.014)
+      }
+    },20000)
+  }
+
+  const baseRoute=route;
+  route=function(i){
+    currentScene=Math.max(0,Math.min(25,Number(i)||0));
+    document.body.dataset.scene=String(currentScene);
+    document.documentElement.style.setProperty('--v24-progress',((currentScene+1)/26*100)+'%');
+    syncControls();
+    scheduleHint(currentScene);
+    const def=actMap[currentScene],key='raphy-v24-act-'+currentScene;
+    if(def&&!sessionStorage.getItem(key)){
+      sessionStorage.setItem(key,'1');
+      return showAct(currentScene,def,()=>baseRoute(currentScene))
+    }
+    return baseRoute(currentScene)
+  };
+
+  const baseReplay=replay;
+  replay=function(){
+    const groups=[
+      ['ACTE I · HÔPITAL',[0,1,2,3,4]],
+      ['ACTE II · BRICOLAGE & CHAOS',[5,6,7,8,9,10]],
+      ['ACTE III · FAMILLE & LÉGÈRETÉ',[11,12,13,14,15,16,17]],
+      ['ACTE IV · MAISON IMPOSSIBLE',[18,19,20]],
+      ['ACTE V · DOSSIER FINAL',[21,22]],
+      ['ÉPILOGUE',[23,24,25]]
+    ];
+    const doneCount=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+    screen(hero('APRÈS LE GÉNÉRIQUE','Rejouer une trace','Pas besoin de recommencer toute l’histoire.')+
+      '<div class="v24-replay-progress"><b>'+doneCount+'</b><span>/26 traces débloquées</span><div class="meter"><i style="width:'+(doneCount/26*100)+'%"></i></div></div>'+
+      groups.map(g=>'<section class="v24-replay-act"><div class="eyebrow">'+g[0]+'</div><div class="v24-replay-grid">'+g[1].map(i=>'<button class="v24-replay-card" data-v24r="'+i+'" '+(S.done[i]?'':'disabled')+'><span>'+String(i+1).padStart(2,'0')+'</span><b>'+NAMES[i]+'</b><small>'+(S.done[i]?'rejouer':'verrouillé')+'</small></button>').join('')+'</div></section>').join('')+
+      '<div class="card soft"><div class="eyebrow">CHAPITRE +1</div><h3>Pas encore écrit.</h3><p class="caption">Il faut bien laisser une place à ce qui n’est pas encore arrivé.</p></div>');
+    $('[data-v24r]').forEach(b=>b.onclick=()=>route(+b.dataset.v24r))
+  };
+
+  // Subtle global sounds only after a real user gesture.
+  document.addEventListener('pointerdown',e=>{
+    if(!prefs.sound)return;
+    if(e.target.closest('.btn,.choice,.item,.v24-round,.v24-replay-card,.v24-hint'))beep(500,.04,.012)
+  },{capture:true});
+
+  makeControls();
+  const uiObserver=new MutationObserver(()=>syncControls());
+  uiObserver.observe(app,{childList:true,subtree:true});
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
