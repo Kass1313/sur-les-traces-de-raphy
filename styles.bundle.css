@@ -479,3 +479,15 @@ input,textarea,select{font-size:16px!important}
 @keyframes v36Credits{from{transform:translateY(0)}to{transform:translateY(-100%)}}
 @keyframes v36Drift{to{transform:translate(-50%,calc(-50% - 8px)) scale(1.05);opacity:.72}}
 @media(max-width:430px){.v36-clinic-room{min-height:330px}.v36-clinic-screen{width:60%;height:215px}.v36-doctor>span{font-size:72px}.v36-final-copy h2{font-size:48px}.v36-memory-star{width:42px;height:42px;font-size:20px}.v36-final-letter p{font-size:16px}.v36-credit-roll h1{font-size:48px}.v36-credit-roll h2{font-size:32px}}
+
+
+/* ===== V37 OPENING CTA FIX ===== */
+.v37-opening{padding-bottom:24px}
+.v37-opening-cta[hidden]{display:none!important}
+.v37-opening-cta{display:flex;flex-direction:column;align-items:center;gap:7px;margin-top:-2px;opacity:0;transform:translateY(10px);transition:.28s ease;position:relative;z-index:20}
+.v37-opening-cta.show{opacity:1;transform:translateY(0)}
+.v37-opening-cta small{font-size:10px;color:#9f949d;letter-spacing:.04em}
+.v37-open-dossier{min-width:min(82vw,320px);box-shadow:0 14px 30px rgba(229,193,127,.12)}
+.v27-envelope.v37-opened .v27-seal.used{opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.55)}
+.v27-envelope[role="button"]{cursor:pointer}
+@media(max-width:430px){.v37-opening-cta{margin-top:4px}.v37-open-dossier{width:min(88vw,320px)}}
