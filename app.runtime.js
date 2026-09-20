@@ -4542,6 +4542,79 @@ if(window.RaphyApp)window.RaphyApp.version='44';
   window.RaphyBuild=BUILD;
 })();
 
+
+/* ===== V44 FREE TRACE ACCESS ===== */
+(()=>{
+  const BUILD='44';
+
+  replay = function(){
+    const groups=[
+      ['ACTE I · HÔPITAL',[0,1,2,3,4]],
+      ['ACTE II · BRICOLAGE & CHAOS',[5,6,7,8,9,10]],
+      ['ACTE III · FAMILLE & LÉGÈRETÉ',[11,12,13,14,15,16,17]],
+      ['ACTE IV · MAISON IMPOSSIBLE',[18,19,20]],
+      ['ACTE V · DOSSIER FINAL',[21,22]],
+      ['ÉPILOGUE',[23,24,25]]
+    ];
+    const doneCount=Object.keys(S.done||{}).filter(k=>S.done[k]).length;
+
+    screen(
+      hero('CHOISIR UNE TRACE','Toutes les traces sont accessibles','Tu peux entrer dans n’importe quelle trace, même si elle n’a jamais été terminée.')+
+      '<div class="v44-trace-summary">'+
+        '<span><b>'+doneCount+'</b>/26 terminées</span>'+
+        '<span>Accès libre activé</span>'+
+      '</div>'+
+      groups.map(g=>
+        '<section class="v44-trace-act">'+
+          '<div class="eyebrow">'+g[0]+'</div>'+
+          '<div class="v44-trace-grid">'+
+            g[1].map(i=>
+              '<button type="button" class="v44-trace-card '+(S.done[i]?'done':'new')+'" data-v44trace="'+i+'">'+
+                '<span>'+String(i+1).padStart(2,'0')+'</span>'+
+                '<b>'+NAMES[i]+'</b>'+
+                '<small>'+(S.done[i]?'déjà terminée':'accessible maintenant')+'</small>'+
+              '</button>'
+            ).join('')+
+          '</div>'+
+        '</section>'
+      ).join('')+
+      '<div class="card soft v44-trace-note"><div class="eyebrow">MODE LIBRE</div><p class="caption">Choisir une trace ne valide pas les précédentes. Ta progression normale reste enregistrée.</p></div>'
+    );
+
+    $('[data-v44trace]').forEach(b=>b.onclick=()=>{
+      const n=Number(b.dataset.v44trace);
+      if(!Number.isInteger(n)||n<0||n>25)return;
+      S.current=n;
+      save();
+      route(n)
+    })
+  };
+
+  function ensureTraceButton(){
+    const box=document.querySelector('.v24-controls');
+    if(!box||document.querySelector('#v44Traces'))return;
+    const b=document.createElement('button');
+    b.className='v24-round v44-traces-round';
+    b.id='v44Traces';
+    b.type='button';
+    b.setAttribute('aria-label','Toutes les traces');
+    b.title='Toutes les traces';
+    b.textContent='☷';
+    b.onclick=()=>replay();
+    box.prepend(b)
+  }
+
+  ensureTraceButton();
+  const traceObserver=new MutationObserver(()=>ensureTraceButton());
+  traceObserver.observe(document.body,{childList:true,subtree:true});
+
+  if(window.RaphyApp){
+    window.RaphyApp.version=BUILD;
+    window.RaphyApp.allTraces=()=>replay()
+  }
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
