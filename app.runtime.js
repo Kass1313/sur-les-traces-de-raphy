@@ -3901,6 +3901,217 @@ if(window.RaphyApp)window.RaphyApp.version='37';
   window.RaphyBuild=BUILD;
 })();
 
+
+/* ===== V39 MASKED NUMBER REBUILD ===== */
+(()=>{
+  const BUILD='39';
+
+  unknown = function(){
+    const firstChoice=['tu l’as clashé','tu as fait comme si tu n’avais rien remarqué','tu lui as laissé croire qu’il avait le dernier mot'][S.choices.story0??0];
+    const alg=S.choices.algeria;
+    const remembered=[];
+    if(S.choices.v31_sink==='reversed')remembered.push('le rouge et le bleu');
+    if(S.choices.v31_car)remembered.push('la patte laissée sur la voiture');
+    if(S.choices.v31_paint)remembered.push('les retouches du mur');
+    if(S.choices.v32_horror)remembered.push('le couloir');
+    if(S.choices.v32_house)remembered.push('la pièce qui changeait');
+
+    let phase='ring';
+    let msgIndex=0;
+    let entered='';
+    const messages=[
+      'Je me souviens du magasin de lunettes.',
+      'Dans ta version, '+firstChoice+'.',
+      'Je me souviens des deux bouteilles. Du pneu. De la plage.',
+      remembered.length
+        ?'Je me souviens aussi de '+remembered.slice(0,3).join(', ')+'.'
+        :'Je me souviens des détails que tu pensais inutiles.',
+      alg===1
+        ?'Et de cette offre immobilière où Mehdi devait finalement gérer cinq enfants.'
+        :alg===0
+          ?'Et tu as refusé la brochure Algérie sans négocier les frais de dossier.'
+          :'Et la brochure immobilière reste juridiquement discutable.',
+      'Mais il manque une vérification.'
+    ];
+
+    const renderRing=()=>{
+      phase='ring';
+      screen(
+        top(20)+hero('Trace 21','Numéro masqué','Cette fois, rien ne s’enchaîne tout seul. Chaque étape attend ton action.')+
+        '<div class="v39-call" id="v39Call">'+
+          '<div class="v39-call-static"></div>'+
+          '<div class="v39-call-orb">?</div>'+
+          '<div class="v39-call-label">NUMÉRO MASQUÉ</div>'+
+          '<div class="v39-call-sub">appel entrant · source inconnue</div>'+
+          '<div class="v39-call-actions">'+
+            '<button type="button" class="v39-call-btn decline" id="v39Decline" aria-label="Refuser">✕</button>'+
+            '<button type="button" class="v39-call-btn accept" id="v39Accept" aria-label="Décrocher">✓</button>'+
+          '</div>'+
+          '<div class="v39-call-hint">Choisis : décrocher ou refuser.</div>'+
+        '</div>'+
+        skip(20)
+      );
+      wireSkip(20);
+      $('#v39Accept').onclick=()=>startConversation(false);
+      $('#v39Decline').onclick=()=>startConversation(true);
+    };
+
+    const startConversation=(refused)=>{
+      phase='messages';msgIndex=0;
+      screen(
+        top(20)+hero('Trace 21','Numéro masqué',refused?'Tu as refusé. Pourtant, le message est déjà là.':'Tu as décroché. Il n’y a aucune voix.')+
+        '<div class="v39-phone">'+
+          '<div class="v39-phone-top"><span>19:47</span><b>MASQUÉ</b><span>•••</span></div>'+
+          '<div class="v39-thread" id="v39Thread">'+
+            '<div class="v39-msg in">'+(refused?'Refuser était logique.':'Tu as décroché.')+'</div>'+
+          '</div>'+
+          '<div class="v39-phone-controls" id="v39PhoneControls">'+
+            '<button class="btn" id="v39NextMsg">Lire le message suivant</button>'+
+          '</div>'+
+        '</div>'+
+        skip(20)
+      );
+      wireSkip(20);
+      $('#v39NextMsg').onclick=showNextMessage;
+    };
+
+    const scrollThread=()=>{
+      const t=$('#v39Thread');
+      if(t)t.scrollTop=t.scrollHeight
+    };
+
+    const showNextMessage=()=>{
+      if(phase!=='messages')return;
+      const thread=$('#v39Thread'),btn=$('#v39NextMsg');
+      if(!thread||!btn)return;
+      if(msgIndex>=messages.length){return askDate()}
+      const text=messages[msgIndex++];
+      const m=document.createElement('div');
+      m.className='v39-msg in reveal';
+      m.textContent=text;
+      thread.append(m);
+      vib(4);
+      scrollThread();
+      btn.textContent=msgIndex<messages.length?'Lire la suite':'Répondre à la vérification';
+      if(msgIndex===messages.length){
+        btn.onclick=askDate;
+      }
+    };
+
+    const askDate=()=>{
+      if(phase==='date')return;
+      phase='date';entered='';
+      const thread=$('#v39Thread');
+      if(!thread)return;
+      const q=document.createElement('div');
+      q.className='v39-msg in reveal important';
+      q.textContent='Premier vrai rendez-vous surprise. Jour + mois.';
+      thread.append(q);
+      scrollThread();
+
+      $('#v39PhoneControls').innerHTML=
+        '<div class="v39-date-box">'+
+          '<div class="eyebrow">RÉPONSE · JJMM</div>'+
+          '<div class="v39-date-display" id="v39DateDisplay"><i></i><i></i><i></i><i></i></div>'+
+          '<input id="v39DateInput" class="v39-date-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="Date au format JJMM">'+
+          '<div class="v39-date-keypad">'+
+            [1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" data-v39key="'+n+'">'+n+'</button>').join('')+
+            '<button type="button" data-v39key="clear">C</button>'+
+            '<button type="button" data-v39key="0">0</button>'+
+            '<button type="button" data-v39key="back">⌫</button>'+
+          '</div>'+
+          '<button class="btn" id="v39SendDate" disabled>Envoyer</button>'+
+          '<div class="v39-date-error" id="v39DateError"></div>'+
+        '</div>';
+
+      const input=$('#v39DateInput'),send=$('#v39SendDate');
+      const paint=()=>{
+        entered=(input.value||entered).replace(/\D/g,'').slice(0,4);
+        input.value=entered;
+        $(' #v39DateDisplay i'.trim()).forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        send.disabled=entered.length!==4;
+        $('#v39DateError').textContent=''
+      };
+      input.addEventListener('input',paint);
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'&&entered.length===4)validateDate()});
+      $('[data-v39key]').forEach(b=>b.onclick=()=>{
+        const k=b.dataset.v39key;
+        if(k==='clear')entered='';
+        else if(k==='back')entered=entered.slice(0,-1);
+        else if(entered.length<4)entered+=k;
+        input.value=entered;paint();vib(3)
+      });
+      send.onclick=validateDate;
+      paint()
+    };
+
+    const validateDate=()=>{
+      if(phase!=='date')return;
+      entered=($('#v39DateInput')?.value||entered).replace(/\D/g,'').slice(0,4);
+      if(entered!=='1105'){
+        const err=$('#v39DateError');
+        if(err)err.textContent='Ce n’est pas cette date. Indice : la plage, les sushi, le premier baiser.';
+        vib([8,18,8]);
+        return
+      }
+      phase='reveal';
+      const thread=$('#v39Thread');
+      thread.insertAdjacentHTML('beforeend','<div class="v39-msg out reveal">1105</div>');
+      $('#v39PhoneControls').innerHTML='<button class="btn secondary" id="v39Reveal1">Lire la réponse</button>';
+      scrollThread();
+      $('#v39Reveal1').onclick=()=>revealStep(0)
+    };
+
+    const revealLines=[
+      'Bien.',
+      'Tu pensais chercher ce que la maison avait caché.',
+      'Elle n’a rien caché.',
+      'Elle a appris à te reconnaître à travers ce que tu laisses derrière toi.',
+      'Des traces.'
+    ];
+
+    const revealStep=(i)=>{
+      if(phase!=='reveal')return;
+      const thread=$('#v39Thread');
+      if(!thread)return;
+      const m=document.createElement('div');
+      m.className='v39-msg in reveal '+(i===revealLines.length-1?'final':'');
+      m.textContent=revealLines[i];
+      thread.append(m);scrollThread();vib(i===revealLines.length-1?[12,24,36]:4);
+      if(i<revealLines.length-1){
+        $('#v39PhoneControls').innerHTML='<button class="btn secondary" id="v39RevealNext">Continuer</button>';
+        $('#v39RevealNext').onclick=()=>revealStep(i+1)
+      }else{
+        phase='hangup';
+        $('#v39PhoneControls').innerHTML='<button class="btn danger" id="v39Hangup">Raccrocher</button>';
+        $('#v39Hangup').onclick=renderAfterCall
+      }
+    };
+
+    const renderAfterCall=()=>{
+      phase='after';
+      screen(
+        '<div class="v39-after-call">'+
+          '<div class="v39-glitch-word">TRACE</div>'+
+          '<p>Une serrure vient de s’ouvrir quelque part dans la maison.</p>'+
+          '<p class="caption">L’appel est terminé. La suite n’avancera pas sans toi.</p>'+
+          '<button class="btn secondary" id="v39FindLock">Trouver laquelle</button>'+
+        '</div>',
+        'centered horror'
+      );
+      $('#v39FindLock').onclick=()=>{
+        $('#v39FindLock').disabled=true;
+        complete(20)
+      }
+    };
+
+    renderRing()
+  };
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
