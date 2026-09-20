@@ -1516,7 +1516,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       '<div class="v24-replay-progress"><b>'+doneCount+'</b><span>/26 traces débloquées</span><div class="meter"><i style="width:'+(doneCount/26*100)+'%"></i></div></div>'+
       groups.map(g=>'<section class="v24-replay-act"><div class="eyebrow">'+g[0]+'</div><div class="v24-replay-grid">'+g[1].map(i=>'<button class="v24-replay-card" data-v24r="'+i+'" '+(S.done[i]?'':'disabled')+'><span>'+String(i+1).padStart(2,'0')+'</span><b>'+NAMES[i]+'</b><small>'+(S.done[i]?'rejouer':'verrouillé')+'</small></button>').join('')+'</div></section>').join('')+
       '<div class="card soft"><div class="eyebrow">CHAPITRE +1</div><h3>Pas encore écrit.</h3><p class="caption">Il faut bien laisser une place à ce qui n’est pas encore arrivé.</p></div>');
-    $('[data-v24r]').forEach(b=>b.onclick=()=>route(+b.dataset.v24r))
+    $$('[data-v24r]').forEach(b=>b.onclick=()=>route(+b.dataset.v24r))
   };
 
   // Subtle global sounds only after a real user gesture.
@@ -1572,7 +1572,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     },1000);
 
     let boardSeen=new Set();
-    $('[data-board]').forEach(b=>b.onclick=()=>{
+    $$('[data-board]').forEach(b=>b.onclick=()=>{
       boardSeen.add(+b.dataset.board);b.classList.add('seen');
       toast(['IRM : quelque chose a été mal reconstruit.','Lavabo : deux repères ne disaient pas la vérité.','11/05 : plage, sushi, premier baiser.','Hamoud : il traverse toujours les problèmes au mauvais moment.'][+b.dataset.board],2400);
       if(boardSeen.size===4&&stage===0)setTimeout(()=>advance('DOSSIER','Le tableau est complet. Le premier verrou s’allume.'),450)
@@ -1608,11 +1608,11 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
         body.innerHTML='<div class="v25-lock-intro"><div class="v25-lock-icon">⌁</div><h3>Commence par examiner les quatre cartes.</h3><p>Le verrou refuse d’accepter une réponse tant que le dossier n’a pas été lu.</p></div>';
       }else if(stage===1){
         body.innerHTML='<div class="eyebrow">ÉPREUVE 2 · SCANNER</div><h3>Quel symbole le dossier associe à ce qui comptait vraiment ?</h3><div class="escape-symbols">'+['○','△','♥','□'].map(x=>'<button class="escape-symbol" data-v25sym="'+x+'">'+x+'</button>').join('')+'</div>';
-        $('[data-v25sym]').forEach(b=>b.onclick=()=>b.dataset.v25sym==='♥'?advance('♥','Oui. Ce symbole était là bien avant le dernier écran.'):toast('Le verrou refuse cette forme.'));
+        $$('[data-v25sym]').forEach(b=>b.onclick=()=>b.dataset.v25sym==='♥'?advance('♥','Oui. Ce symbole était là bien avant le dernier écran.'):toast('Le verrou refuse cette forme.'));
       }else if(stage===2){
         body.innerHTML='<div class="eyebrow">ÉPREUVE 3 · PLOMBERIE</div><h3>Reproduis la correction du lavabo.</h3><div class="valve-board"><button class="valve blue" data-v25v="B">FROID</button><button class="valve red" data-v25v="R">CHAUD</button></div><div class="code-strip" id="v25ValveStrip"></div>';
         let seq=[];const goal='BRB';
-        $('[data-v25v]').forEach(b=>b.onclick=()=>{
+        $$('[data-v25v]').forEach(b=>b.onclick=()=>{
           seq.push(b.dataset.v25v);$('#v25ValveStrip').textContent=seq.map(x=>x==='B'?'🔵':'🔴').join(' ');
           if(seq.length===3){if(seq.join('')===goal)advance('↔','Exact. Même la plomberie finit par devenir un indice.');else{toast('Ça fuit conceptuellement. Recommence.');seq=[];$('#v25ValveStrip').textContent=''}}
         });
@@ -1627,7 +1627,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
           for(const n of goal){const el=$('[data-v25paw="'+n+'"]');el.classList.add('flash');await V25_sleep(360);el.classList.remove('flash');await V25_sleep(120)}
           showing=false;toast('À toi. Hamoud affirme que son trajet était parfaitement normal.')
         };
-        $('[data-v25paw]').forEach(b=>b.onclick=()=>{
+        $$('[data-v25paw]').forEach(b=>b.onclick=()=>{
           if(showing)return;
           const n=+b.dataset.v25paw,k=input.length;input.push(n);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),180);
           if(n!==goal[k]){input.length=0;toast('Raté. Hamoud te regarde comme si le problème venait de toi.');return}
@@ -1637,16 +1637,16 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
         const mem=[['💧','Cristaline'],['🌙','Salon-de-Provence'],['🌊','Plage'],['⛪','Bonne Mère']];
         body.innerHTML='<div class="eyebrow">ÉPREUVE 6 · CHRONOLOGIE</div><h3>Remets ces quatre souvenirs dans l’ordre.</h3><div class="memory-order">'+mem.map((x,i)=>'<button class="memory-chip" data-v25m="'+i+'">'+x[0]+' '+x[1]+'</button>').join('')+'</div><div class="code-strip" id="v25Chrono"></div>';
         const arr=[],goal='0123';
-        $('[data-v25m]').forEach(b=>b.onclick=()=>{
+        $$('[data-v25m]').forEach(b=>b.onclick=()=>{
           const n=+b.dataset.v25m;if(arr.includes(n))return;arr.push(n);b.classList.add('selected');$('#v25Chrono').textContent=arr.map(i=>mem[i][0]).join(' → ');
-          if(arr.length===4){if(arr.join('')===goal)advance('CHRONO','Oui. Le dossier ne garde pas seulement des objets : il garde l’ordre dans lequel ils deviennent importants.');else{toast('Presque. La chronologie rembobine.');arr.length=0;$('[data-v25m]').forEach(x=>x.classList.remove('selected'));$('#v25Chrono').textContent=''}}
+          if(arr.length===4){if(arr.join('')===goal)advance('CHRONO','Oui. Le dossier ne garde pas seulement des objets : il garde l’ordre dans lequel ils deviennent importants.');else{toast('Presque. La chronologie rembobine.');arr.length=0;$$('[data-v25m]').forEach(x=>x.classList.remove('selected'));$('#v25Chrono').textContent=''}}
         });
       }else if(stage===6){
         body.innerHTML='<div class="eyebrow">ÉPREUVE 7 · PREMIER JOUR</div><h3>Quel détail Mehdi remarque aussi lors de votre rencontre au magasin de lunettes ?</h3><div class="choices"><button class="choice" data-v25detail="0">Un tatouage New York</button><button class="choice" data-v25detail="1">Une bague verte</button><button class="choice" data-v25detail="2">Un sac avec des étoiles</button></div>';
-        $('[data-v25detail]').forEach(b=>b.onclick=()=>+b.dataset.v25detail===0?advance('NY','Exact. Le premier jour était déjà rempli de détails inutiles… jusqu’à ce qu’ils ne le soient plus.'):toast('Ce détail-là appartient à une autre histoire.'));
+        $$('[data-v25detail]').forEach(b=>b.onclick=()=>+b.dataset.v25detail===0?advance('NY','Exact. Le premier jour était déjà rempli de détails inutiles… jusqu’à ce qu’ils ne le soient plus.'):toast('Ce détail-là appartient à une autre histoire.'));
       }else if(stage===7){
         body.innerHTML='<div class="eyebrow">ÉPREUVE 8 · VERROU CENTRAL</div><div class="v25-token-line">'+tokens.map(x=>'<span>'+x+'</span>').join('')+'</div><h3>Qu’est-ce que la maison essayait réellement de reconstruire ?</h3><div class="choices"><button class="choice" data-v25final="0">Un objet perdu</button><button class="choice" data-v25final="1">Des preuves contre Mehdi</button><button class="choice" data-v25final="2">Les traces que Raphy laisse dans les lieux et les moments</button></div>';
-        $('[data-v25final]').forEach(b=>b.onclick=()=>{
+        $$('[data-v25final]').forEach(b=>b.onclick=()=>{
           if(+b.dataset.v25final!==2)return toast(+b.dataset.v25final===1?'Très tentant. Mais le procès de Mehdi est juste après.':'Non. Rien n’a réellement été volé.');
           clearInterval(ticker);clearTimeout(hintTimer);
           body.innerHTML='<div class="v25-escape-win"><div class="v25-unlock">⌁</div><div class="eyebrow">VERROU OUVERT</div><h2>Elle a appris à te reconnaître.</h2><p>Pas avec un score. Pas avec des fragments. Avec les détails qui reviennent partout où tu passes.</p><button class="btn" id="v25EscapeEnd">Ouvrir la porte suivante</button></div>';
@@ -1676,7 +1676,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(p>=dossiers.length)return sanction();
       const d=dossiers[p];
       $('#v25Trial').innerHTML=dots(dossiers.length,p)+'<div class="v25-case-no">DOSSIER '+String(p+1).padStart(2,'0')+'</div><h2>'+d[0]+'</h2><div class="v25-evidence"><b>Pièce à conviction</b><p>'+d[1]+'</p></div><div class="v25-defense"><b>Défense de Mehdi</b><p>'+d[2]+'</p></div><div class="choices"><button class="choice" data-v25verdict="0">Non coupable 😇</button><button class="choice" data-v25verdict="1">Coupable 😌</button><button class="choice" data-v25verdict="2">Très coupable, qu’il arrête de parler 🔨</button></div>';
-      $('[data-v25verdict]').forEach(b=>b.onclick=()=>{
+      $$('[data-v25verdict]').forEach(b=>b.onclick=()=>{
         const v=+b.dataset.v25verdict;score+=v;
         toast(v===0?'Mehdi sourit beaucoup trop vite.':v===1?'Il murmure « sorti de son contexte ».':'Le marteau a parlé. Mehdi aussi, mais personne n’écoute.');
         p++;setTimeout(draw,450)
@@ -1686,7 +1686,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     function sanction(){
       const verdict=score>=9?'COUPABLE AVEC OPTION RÉCIDIVE':score>=5?'COUPABLE, MAIS PRÉSENTABLE':'LIBÉRÉ SOUS SURVEILLANCE DE RAPHY';
       $('#v25Trial').innerHTML='<div class="eyebrow">VERDICT</div><h2>'+verdict+'</h2><p>La peine doit rester symbolique. Le tribunal a déjà assez de travail.</p><div class="choices"><button class="choice" data-v25sanction="0">Préparer le petit-déjeuner sans demander où sont les choses</button><button class="choice" data-v25sanction="1">Organiser une soirée complète sans dire « on verra »</button><button class="choice" data-v25sanction="2">Reconnaître une fois que Raphy avait raison sans ajouter « mais »</button></div>';
-      $('[data-v25sanction]').forEach(b=>b.onclick=()=>{
+      $$('[data-v25sanction]').forEach(b=>b.onclick=()=>{
         const labels=['petit-déjeuner autonome','soirée sans “on verra”','reconnaissance sans “mais”'];
         S.choices.v25sanction=+b.dataset.v25sanction;save();
         $('#v25Trial').innerHTML='<div class="eyebrow">SANCTION RETENUE</div><h2>'+labels[+b.dataset.v25sanction]+'</h2><div class="v25-appeal"><p>Mehdi souhaite faire appel.</p><button class="btn secondary" id="v25Appeal">Déposer l’appel — 46 pages × 3 exemplaires</button></div>';
@@ -1708,7 +1708,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     const draw=()=>{
       const b=beats[i];
       $('#v25Calm').innerHTML='<button class="v25-calm-card" id="v25CalmCard"><span>'+b[2]+'</span><small>'+b[0]+'</small><h2>'+b[1]+'</h2><p>Touche pour continuer.</p></button>';
-      $('#v25CalmCard').onclick=()=>{i++;if(i>=beats.length){$('#v25Calm').innerHTML='<div class="v25-calm-end"><div>☁</div><h2>Les souvenirs tranquilles ont aussi une place ici.</h2><button class="btn" id="v25CalmEnd">Continuer</button></div>';$('#v25CalmDots').innerHTML='';$('#v25CalmEnd').onclick=()=>complete(23);return}$('#v25CalmDots i').forEach((x,j)=>x.classList.toggle('on',j===i));draw()}
+      $('#v25CalmCard').onclick=()=>{i++;if(i>=beats.length){$('#v25Calm').innerHTML='<div class="v25-calm-end"><div>☁</div><h2>Les souvenirs tranquilles ont aussi une place ici.</h2><button class="btn" id="v25CalmEnd">Continuer</button></div>';$('#v25CalmDots').innerHTML='';$('#v25CalmEnd').onclick=()=>complete(23);return}$$('#v25CalmDots i').forEach((x,j)=>x.classList.toggle('on',j===i));draw()}
     };draw()
   };
 
@@ -1723,7 +1723,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     let opened=new Set();
     screen(top(24)+hero('Trace 25','Ce qu’on ne dit pas assez','Cinq enveloppes. Aucun score. Ouvre-les dans l’ordre que tu veux.')+'<div class="v25-note-grid">'+notes.map((n,i)=>'<button class="v25-envelope" data-v25note="'+i+'"><span>'+n[2]+'</span><b>'+n[0]+'</b><small>ouvrir</small></button>').join('')+'</div><div id="v25NoteReader"></div>');
 
-    $('[data-v25note]').forEach(b=>b.onclick=()=>{
+    $$('[data-v25note]').forEach(b=>b.onclick=()=>{
       const i=+b.dataset.v25note,n=notes[i];opened.add(i);b.classList.add('opened');b.querySelector('small').textContent='lu';
       $('#v25NoteReader').innerHTML='<div class="v25-note-open card glow"><div class="eyebrow">'+n[0]+'</div><p class="storyline">'+n[1]+'</p>'+(opened.size===notes.length?'<button class="btn" id="v25AllNotes">Il reste une porte</button>':'<p class="caption">'+opened.size+'/5 enveloppes ouvertes</p>')+'</div>';
       if(opened.size===notes.length)$('#v25AllNotes').onclick=()=>complete(24)
@@ -1814,7 +1814,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       ][i];
       toast(msg,3200)
     });
-    $('[data-cstory]').forEach(b=>b.onclick=()=>{
+    $$('[data-cstory]').forEach(b=>b.onclick=()=>{
       const j=+b.dataset.cstory;
       S.choices['cinema_'+i]=j;if(i===0)S.choices.story0=j;save();
       const generic=[
@@ -1885,7 +1885,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
           '<button class="item big" data-v28drink="ice">🧊 Glace</button>'+
           '<button class="item big" data-v28drink="stir">🥄 Mélanger</button>'+
         '</div>';
-      $('[data-v28drink]').forEach(b=>b.onclick=()=>{
+      $$('[data-v28drink]').forEach(b=>b.onclick=()=>{
         const k=b.dataset.v28drink;
         if(k!==order[step])return toast(step===0?'La glace d’abord. Sinon le bar imaginaire retire une étoile.':'Pas encore. Le verre demande un minimum d’organisation.');
         b.disabled=true;b.classList.add('selected');
@@ -1943,7 +1943,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
     wireSkip(16);
 
-    $('[data-pack]').forEach(b=>b.onclick=()=>{
+    $$('[data-pack]').forEach(b=>b.onclick=()=>{
       if(phase!==0)return;
       const n=+b.dataset.pack;
       if(selected.includes(n)){selected=selected.filter(x=>x!==n);b.classList.remove('selected')}
@@ -1958,14 +1958,14 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       const w=selected.reduce((s,x)=>s+items[x][1],0);
       if(w>12)return toast('Valise en surcharge. Même l’amour respecte 12 kg fictifs.');
       if(selected.length<4)return toast('Il manque trop de choses. Même Hamoud trouve cette valise optimiste.');
-      phase=1;$('#customNext').style.display='none';$('[data-pack]').forEach(x=>x.disabled=true);$('#v28CustomPhase').textContent='CONTRÔLE';drawQ()
+      phase=1;$('#customNext').style.display='none';$$('[data-pack]').forEach(x=>x.disabled=true);$('#v28CustomPhase').textContent='CONTRÔLE';drawQ()
     };
 
     function drawQ(){
       if(q>=questions.length)return passport();
       const z=questions[q];
       $('#customQ').innerHTML='<div class="dialogue" style="margin-top:14px"><div class="avatar">🛂</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v28cq="'+j+'">'+x+'</button>').join('')+'</div>';
-      $('[data-v28cq]').forEach(b=>b.onclick=()=>{
+      $$('[data-v28cq]').forEach(b=>b.onclick=()=>{
         const j=+b.dataset.v28cq;
         toast(j===z[2]?['L’agent approuve. Les pâtes aussi.','Frontière culinaire rétablie.','Enfin une réponse juridiquement saine.'][q]:'L’agent écrit quelque chose. Ça n’a pas l’air flatteur.');
         q++;setTimeout(drawQ,480)
@@ -2010,7 +2010,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
     wireSkip(17);
 
-    $('[data-v28flag]').forEach(b=>b.onclick=()=>{
+    $$('[data-v28flag]').forEach(b=>b.onclick=()=>{
       if(b.disabled)return;b.disabled=true;const i=+b.dataset.v28flag;found++;b.classList.add('caught');b.innerHTML='✕';
       const f=flags[i];
       $('#v28Refusals').insertAdjacentHTML('beforeend','<div class="v28-refusal" style="left:'+f[2]+'%;top:'+f[3]+'%">REFUSÉ</div>');
@@ -2021,7 +2021,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
 
     function contract(){
       $('#v28ContractEnd').innerHTML='<div class="eyebrow">CONTRE-PROPOSITION DE RAPHY</div><div class="choices" style="margin-top:10px"><button class="choice" data-v28contract="0">Mehdi gère les cinq enfants pendant 18 ans.</button><button class="choice" data-v28contract="1">Raphy garde sa liberté et Mehdi garde sa brochure.</button><button class="choice" data-v28contract="2">Hamoud devient agent immobilier. Au point où on en est.</button></div>';
-      $('[data-v28contract]').forEach(b=>b.onclick=()=>{
+      $$('[data-v28contract]').forEach(b=>b.onclick=()=>{
         const v=+b.dataset.v28contract;S.choices.algeria=v;save();
         toast(['L’offre vient de perdre absolument toute rentabilité pour Mehdi.','Contrat équilibré. La brochure se désintègre émotionnellement.','Hamoud exige 12 % de commission en croquettes.'][v],3000);
         setTimeout(()=>complete(17),850)
@@ -2054,7 +2054,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
     wireSkip(11);
 
-    $('[data-v29obj]').forEach(b=>b.onclick=()=>{
+    $$('[data-v29obj]').forEach(b=>b.onclick=()=>{
       if(phase!==0||b.disabled)return;
       b.disabled=true;b.classList.add('picked');found++;vib(6);
       $('#v29Found').textContent=found+'/6 affaires';
@@ -2062,7 +2062,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(found===6){phase=1;setTimeout(startEscape,650)}
     });
 
-    $('[data-v29npc]').forEach(b=>b.onclick=()=>{
+    $$('[data-v29npc]').forEach(b=>b.onclick=()=>{
       if(phase!==0)return;
       chat++;$('#v29Chat').textContent=chat+' piège'+(chat>1?'s':'');
       const lines=[
@@ -2119,7 +2119,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
     wireSkip(15);
 
-    $('[data-v29c]').forEach(b=>b.onclick=()=>{
+    $$('[data-v29c]').forEach(b=>b.onclick=()=>{
       const i=+b.dataset.v29c;
       if(i!==step)return toast(['Le ticket vient de tousser très fort.','Le caramel te regarde. Il sait que ce n’est pas son tour.','On respecte les couches. Même dans un jeu.'][Math.floor(Math.random()*3)]);
       if(i===3&&!shotReady){espressoGame(b);return}
@@ -2182,7 +2182,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
         }
         const o=orders[n];
         $('#v29CoffeeExtra').innerHTML='<div class="v29-customer card"><div class="dialogue"><div class="avatar">'+['🙂','🧐','😌'][n]+'</div><div class="bubble">'+o[0]+'</div></div><div class="choices" style="margin-top:12px">'+o[1].map((x,j)=>'<button class="choice" data-v29co="'+j+'">'+x+'</button>').join('')+'</div></div>';
-        $('[data-v29co]').forEach(b=>b.onclick=()=>{
+        $$('[data-v29co]').forEach(b=>b.onclick=()=>{
           const j=+b.dataset.v29co;
           toast(j===0?'Réponse professionnellement défendable.':j===1?'Le service client vient de quitter mentalement la pièce.':'C’est enregistré. Juridiquement fascinant.');
           n++;setTimeout(draw,450)
@@ -2383,7 +2383,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
         $('#v30ShowStitch').onclick=async()=>{
           pattern=[];for(const n of stitchGoal){const b=$('[data-v30stitch="'+n+'"]');b.classList.add('flash');await sleep(330);b.classList.remove('flash');await sleep(100)}toast('À toi.')
         };
-        $('[data-v30stitch]').forEach(b=>b.onclick=()=>{
+        $$('[data-v30stitch]').forEach(b=>b.onclick=()=>{
           const n=+b.dataset.v30stitch,k=pattern.length;pattern.push(n);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),180);
           if(n!==stitchGoal[k]){pattern=[];toast('Séquence refusée. Même le bloc fictif a des standards.');return}
           if(pattern.length===stitchGoal.length){closed=true;toast('Bloc fictif terminé. Le chirurgien rend enfin l’outil à quelqu’un de qualifié.');setTimeout(()=>complete(3),900)}
@@ -2417,7 +2417,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(q>=QGIRL.length)return prepStealth();
       const z=QGIRL[q];
       $('#v30BedQ').innerHTML='<div class="dialogue"><div class="avatar">👧🏻</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v30bq="'+j+'">'+x+'</button>').join('')+'</div>';
-      $('[data-v30bq]').forEach(b=>b.onclick=()=>{
+      $$('[data-v30bq]').forEach(b=>b.onclick=()=>{
         const j=+b.dataset.v30bq;requests++;sleepiness+=j===0?13:j===1?8:5;vib(5);toast(reactions[q][j],2800);
         if(q%2===0){const star=document.createElement('i');star.style.left=(15+Math.random()*70)+'%';star.style.top=(12+Math.random()*55)+'%';$('#v30Stars').append(star)}
         $('#v30Girl').animate([{transform:'translateY(0)'},{transform:'translateY(-10px)'},{transform:'translateY(0)'}],{duration:380});
@@ -2468,14 +2468,14 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(q>=QBOY.length)return inventory();
       const z=QBOY[q];
       $('#v30HeroQ').innerHTML='<div class="dialogue"><div class="avatar">🦸🏻‍♂️</div><div class="bubble">'+z[0]+'</div></div><div class="choices" style="margin-top:12px">'+z[1].map((x,j)=>'<button class="choice" data-v30hq="'+j+'">'+x+'</button>').join('')+'</div>';
-      $('[data-v30hq]').forEach(b=>b.onclick=()=>{
+      $$('[data-v30hq]').forEach(b=>b.onclick=()=>{
         const j=+b.dataset.v30hq;power+=j===2?12:9;vib(5);toast(comments[q][j],2600);q++;setTimeout(draw,520)
       })
     };
 
     function inventory(){
       $('#v30HeroQ').innerHTML='<div class="eyebrow">ÉQUIPEMENT AVANT DÉPART</div><div class="item-grid">'+gear.map((x,i)=>'<button class="item big" data-v30gear="'+i+'">'+x+'</button>').join('')+'</div><p class="caption">Le masque n’est pas vraiment perdu. Regarde le chat.</p>';
-      $('[data-v30gear]').forEach(b=>b.onclick=()=>{
+      $$('[data-v30gear]').forEach(b=>b.onclick=()=>{
         const n=+b.dataset.v30gear;
         if(n===1&&!$('#v30HeroCat').classList.contains('caught'))return toast('Masque introuvable. Le chat évite soigneusement ton regard.');
         if(b.disabled)return;b.disabled=true;b.classList.add('selected');got++;power=Math.min(100,power+4);$('#v30Power').textContent=power+'%';$('#v30PowerBar').style.width=power+'%';
@@ -2489,7 +2489,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       let step=0;const goal=['shield','jump','beam'];
       $('#v30Villain').classList.add('active');
       $('#v30HeroQ').innerHTML='<div class="eyebrow">COMBAT FINAL</div><p class="caption">Le nuage-méchant attaque. Trois actions dans le bon ordre.</p><div class="choices"><button class="choice" data-v30fight="beam">⚡ Rayon</button><button class="choice" data-v30fight="shield">🛡️ Bouclier</button><button class="choice" data-v30fight="jump">🦘 Super-saut</button></div>';
-      $('[data-v30fight]').forEach(b=>b.onclick=()=>{
+      $$('[data-v30fight]').forEach(b=>b.onclick=()=>{
         const k=b.dataset.v30fight;
         if(k!==goal[step]){step=0;toast('Le méchant profite de cette stratégie très créative. Recommence.');return}
         step++;b.classList.add('good');vib(7);
@@ -2541,13 +2541,13 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       bonus=Math.max(0,bonus-1);$('#v31Bonus').textContent=bonus?'bonus '+bonus+'s':'bonus expiré'
     },1000);
 
-    $('[data-v31ci]').forEach(b=>b.onclick=()=>{
+    $$('[data-v31ci]').forEach(b=>b.onclick=()=>{
       if(b.disabled)return;
-      $('[data-v31ci]').forEach(x=>x.classList.remove('selected'));
+      $$('[data-v31ci]').forEach(x=>x.classList.remove('selected'));
       b.classList.add('selected');selected=+b.dataset.v31ci;
       if(items[selected][1]==='cat')toast('Hamoud vient de s’auto-déclarer “objet de direction”.')
     });
-    $('[data-v31bin]').forEach(bin=>bin.onclick=()=>{
+    $$('[data-v31bin]').forEach(bin=>bin.onclick=()=>{
       if(selected===null)return toast('Choisis d’abord un objet. Sinon tu ranges le concept, pas la cave.');
       const item=items[selected],ok=bin.dataset.v31bin===item[3];
       if(!ok){streak=0;$('#v31Streak').textContent='série 0';return toast(item[1]==='cat'?'Hamoud refuse. Il souhaite “MYSTÈRE” pour des raisons fiscales.':'Non. La cave vient de faire un petit bruit de désapprobation.')}
@@ -2596,7 +2596,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       }
       const r=reqs[round];$('#v31ArchRound').textContent=(round+1)+'/5';
       $('#v31ArchQ').innerHTML='<div class="eyebrow">DEMANDE '+(round+1)+'</div><h3>'+r[0]+'</h3><div class="choices">'+r[1].map((x,j)=>'<button class="choice" data-v31ar="'+j+'">'+x+'</button>').join('')+'</div>';
-      $('[data-v31ar]').forEach(b=>b.onclick=()=>{
+      $$('[data-v31ar]').forEach(b=>b.onclick=()=>{
         const j=+b.dataset.v31ar,correct=j===r[2];
         sat=Math.max(5,Math.min(98,sat+(correct?11:-7)));budget=Math.max(15,budget-(j===0?14:j===1?9:4));
         $('#v31Sat').textContent=sat+'%';$('#v31SatBar').style.width=sat+'%';$('#v31Budget').textContent=budget;
@@ -2627,7 +2627,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     wireSkip(7);
     const cv=$('#v31Paint'),ctx=cv.getContext('2d');ctx.fillStyle='#d8d2ca';ctx.fillRect(0,0,700,520);
 
-    $('.v31-paint-edge').forEach(edge=>edge.onclick=()=>{
+    $$('.v31-paint-edge').forEach(edge=>edge.onclick=()=>{
       if(phase!=='mask'||edge.classList.contains('masked'))return;
       edge.classList.add('masked');masked++;vib(4);
       if(masked===4){phase='paint';$('#v31PaintPhase').textContent='2/3 · peindre';$('#v31PaintControls').innerHTML='<p class="caption">Peins au doigt. Va trop lentement au même endroit et ça coule.</p>';toast('Bords protégés. Hamoud étudie déjà une violation du chantier.')}
@@ -2637,7 +2637,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(done||coverage<100||paws>0||phase!=='paint')return;
       phase='inspect';$('#v31PaintPhase').textContent='3/3 · inspection';
       $('#v31PaintControls').innerHTML='<p class="caption">Le mur est couvert. Trouve les trois petites zones à retoucher.</p><div class="v31-inspection"><button data-v31spot="0"></button><button data-v31spot="1"></button><button data-v31spot="2"></button></div>';
-      let spots=0;$('[data-v31spot]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('fixed');spots++;toast(spots===3?'Inspection validée. Aucun défaut officiellement visible.':'Retouche faite.');if(spots===3){done=true;S.choices.v31_paint={drips};save();setTimeout(()=>complete(7),900)}})
+      let spots=0;$$('[data-v31spot]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('fixed');spots++;toast(spots===3?'Inspection validée. Aucun défaut officiellement visible.':'Retouche faite.');if(spots===3){done=true;S.choices.v31_paint={drips};save();setTimeout(()=>complete(7),900)}})
     };
 
     const paint=e=>{
@@ -2654,7 +2654,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     function spawnPaws(){
       pawsSpawned=true;paws=4;toast('Hamoud vient de traverser la peinture. Il appelle ça une collaboration.');
       $('#v31Paws').innerHTML=[[22,34],[42,47],[62,55],[78,38]].map((p,i)=>'<button data-v31paw="'+i+'" style="left:'+p[0]+'%;top:'+p[1]+'%">🐾</button>').join('');
-      $('[data-v31paw]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('cleaned');paws--;toast(paws?'Une patte de moins. L’artiste proteste.':'Pattes nettoyées. Hamoud quitte le chantier sans facture.');maybeFinish()})
+      $$('[data-v31paw]').forEach(b=>b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.classList.add('cleaned');paws--;toast(paws?'Une patte de moins. L’artiste proteste.':'Pattes nettoyées. Hamoud quitte le chantier sans facture.');maybeFinish()})
     }
   };
 
@@ -2677,7 +2677,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       if(step>=2&&!washerFound){washerFound=true;$('#v31SinkCat').classList.add('moved');toast('Sous Hamoud : le joint. Évidemment.');$('[data-v31part="washer"]').classList.add('found')}
       else toast('Hamoud refuse de commenter les pièces qu’il possède éventuellement.')
     };
-    $('[data-v31part]').forEach(b=>b.onclick=()=>{
+    $$('[data-v31part]').forEach(b=>b.onclick=()=>{
       const p=b.dataset.v31part,expected=sequence[step];
       if(p!==expected)return toast('Pas encore. Mehdi propose de “tester quand même”. Proposition refusée.');
       if(p==='washer'&&!washerFound)return toast('Le joint manque. Le chat est beaucoup trop immobile.');
@@ -2703,12 +2703,12 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#v31SinkPhase').textContent='3/3 · chaud/froid';
       $('#v31SinkExtra').innerHTML='<div class="v31-temp-test"><button data-v31temp="red">🔴 ROUGE</button><button data-v31temp="blue">🔵 BLEU</button></div><p class="caption" id="v31TempCopy">Teste les deux commandes.</p><div id="v31TempFix"></div>';
       let tested=new Set();
-      $('[data-v31temp]').forEach(b=>b.onclick=()=>{
+      $$('[data-v31temp]').forEach(b=>b.onclick=()=>{
         tested.add(b.dataset.v31temp);
         toast(b.dataset.v31temp==='red'?'Le rouge sort… froid. Très bonne ambiance.':'Le bleu sort… chaud. Le lavabo ment avec assurance.');
         if(tested.size===2){
           $('#v31TempFix').innerHTML='<div class="choices"><button class="choice" data-v31fix="0">Appeler ça “thermique inversé premium”</button><button class="choice" data-v31fix="1">Inverser les deux repères</button><button class="choice" data-v31fix="2">Accuser la gravité</button></div>';
-          $('[data-v31fix]').forEach(x=>x.onclick=()=>{
+          $$('[data-v31fix]').forEach(x=>x.onclick=()=>{
             if(+x.dataset.v31fix!==1)return toast(+x.dataset.v31fix===0?'Marketing audacieux. Refusé.':'La gravité demande à quitter le groupe.');
             S.choices.v31_sink='reversed';save();toast('Corrigé. Mehdi annonce qu’il avait “justement un doute”.');setTimeout(()=>complete(8),850)
           })
@@ -2778,7 +2778,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#v31CarWash').innerHTML='<div class="v31-car-interior"><div class="v31-dashboard">TABLEAU DE BORD</div>'+
         [['🧾','ticket',12,62],['🧦','chaussette',72,73],['🥤','gobelet',30,58],['🧻','lingette',83,42],['🍪','miette',48,80],['🧸','jouet',20,36],['🐈','poils Hamoud',62,34]].map((x,i)=>'<button data-v31trash="'+i+'" style="left:'+x[2]+'%;top:'+x[3]+'%"><span>'+x[0]+'</span><small>'+x[1]+'</small></button>').join('')+
       '</div>';
-      $('[data-v31trash]').forEach(b=>b.onclick=()=>{
+      $$('[data-v31trash]').forEach(b=>b.onclick=()=>{
         if(b.disabled)return;b.disabled=true;b.classList.add('gone');interior++;$('#v31CleanPct').textContent=interior+'/7 objets';$('#v31CleanBar').style.width=(interior/7*100)+'%';
         toast(interior===7?'Intérieur débarrassé. Maintenant, les miettes microscopiques veulent négocier.':'Retiré.');
         if(interior===7)setTimeout(vacuumPhase,500)
@@ -2790,7 +2790,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#v31CarWash').innerHTML='<div class="v31-vacuum-scene"><div class="v31-seat s1"></div><div class="v31-seat s2"></div><div class="v31-floor"></div>'+
         [[16,66],[38,78],[59,68],[78,80],[54,48]].map((p,i)=>'<button data-v31vac="'+i+'" style="left:'+p[0]+'%;top:'+p[1]+'%">✦</button>').join('')+
         '<div class="v31-vacuum-head">▰</div></div>';
-      $('[data-v31vac]').forEach(b=>b.onclick=()=>{
+      $$('[data-v31vac]').forEach(b=>b.onclick=()=>{
         if(b.disabled)return;b.disabled=true;b.classList.add('clean');vacuumed++;vib(4);$('#v31CleanPct').textContent=vacuumed+'/5 zones';$('#v31CleanBar').style.width=(vacuumed/5*100)+'%';
         if(vacuumed===5)setTimeout(finalSpot,500)
       })
@@ -2873,7 +2873,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       toast('Les ailes changent de cible. Pas toutes. La maison garde un petit budget malaise.')
     };
 
-    $('[data-v32mark]').forEach(el=>el.onclick=()=>{
+    $$('[data-v32mark]').forEach(el=>el.onclick=()=>{
       if(el.classList.contains('found'))return;
       el.classList.add('found');marks.add(el.dataset.v32mark);clues=marks.size;vib(8);
       $('#v32HorrorCount').textContent=clues+'/4';
@@ -2980,7 +2980,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
     );
     wireSkip(19);
 
-    $('[data-v32room]').forEach(b=>b.onclick=()=>{
+    $$('[data-v32room]').forEach(b=>b.onclick=()=>{
       if(eyesClosed||round===0)return toast('Ferme d’abord les yeux. Pour une fois, c’est réellement la consigne.');
       const target=rounds[round-1].change;
       if(b.dataset.v32room===target&&!b.classList.contains('found')){
@@ -3021,7 +3021,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       setTimeout(()=>{
         $('#v32Blackout').classList.add('on');
         setTimeout(()=>{
-          $('[data-v32room]').forEach(x=>x.classList.remove('changed','moved','turned','haunted','wrong-door','painted'));
+          $$('[data-v32room]').forEach(x=>x.classList.remove('changed','moved','turned','haunted','wrong-door','painted'));
           $('#v32Blackout').classList.remove('on');
           $('#v32Whisper').textContent='elle ne copie pas les pièces. elle copie les traces.';
           $('#v32Whisper').classList.add('final');
@@ -3244,7 +3244,7 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       $('#v33ImportCancel').onclick=()=>{$('#v33DevPanel').innerHTML=''}
     };
     $('#v33Acts').onclick=()=>{Object.keys(sessionStorage).filter(k=>k.startsWith('raphy-v24-act-')).forEach(k=>sessionStorage.removeItem(k));toast('Les séparateurs d’actes réapparaîtront.');};
-    $('[data-v33jump]').forEach(b=>b.onclick=()=>{const n=+b.dataset.v33jump;S.current=n;snapshot('qa-jump-'+n);closeModal();route(n)});
+    $$('[data-v33jump]').forEach(b=>b.onclick=()=>{const n=+b.dataset.v33jump;S.current=n;snapshot('qa-jump-'+n);closeModal();route(n)});
     $('#v33Reset').onclick=()=>{
       $('#v33DevPanel').innerHTML='<div class="card soft v33-confirm"><b>Vraiment tout effacer ?</b><p class="caption">Cette action supprime la progression et le backup local.</p><div class="actions two"><button class="btn danger" id="v33ResetYes">Oui, tout effacer</button><button class="btn secondary" id="v33ResetNo">Non</button></div></div>';
       $('#v33ResetYes').onclick=()=>{localStorage.removeItem(KEY);localStorage.removeItem(SNAPSHOT_KEY);sessionStorage.clear();location.reload()};
