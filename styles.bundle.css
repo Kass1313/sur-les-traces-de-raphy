@@ -438,3 +438,17 @@ input,textarea,select{font-size:16px!important}
   .v34-update-banner{grid-template-columns:1fr auto;}.v34-update-banner #v34UpdateLater{grid-column:2}
   .v34-net-banner{left:10px;right:10px;width:auto;transform:none}
 }
+
+
+/* ===== V35 RUNTIME QA & RECOVERY ===== */
+.v35-recovery{text-align:center}
+.v35-recovery-icon{width:74px;height:74px;border-radius:24px;margin:8px auto 12px;display:grid;place-items:center;font-size:36px;background:linear-gradient(145deg,rgba(229,193,127,.14),rgba(239,131,157,.08));border:1px solid rgba(229,193,127,.2);color:#ead394}
+.v35-recovery p{color:#b8adb7;line-height:1.5}
+.v35-error-box{margin-top:12px;text-align:left;word-break:break-word}
+.v35-error-box p{font:11px/1.45 ui-monospace;color:#cdbfc9}
+.v35-diag-card{margin-top:12px}
+.v35-diag-list{display:grid;gap:7px;margin-top:12px}
+.v35-diag-list>div{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}
+.v35-diag-list span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:11px}.v35-diag-list span.ok{background:rgba(114,207,148,.12);color:#87d6a4;border:1px solid rgba(114,207,148,.22)}.v35-diag-list span.warn{background:rgba(229,193,127,.12);color:#e6c67f;border:1px solid rgba(229,193,127,.22)}
+.v35-diag-list b{font-size:11px}.v35-diag-list small{font-size:9px;color:#988d98;text-align:right;max-width:160px}
+@media(max-width:430px){.v35-diag-list>div{grid-template-columns:28px 1fr}.v35-diag-list small{grid-column:2;text-align:left;max-width:none}}
