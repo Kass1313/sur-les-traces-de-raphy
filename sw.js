@@ -1,4 +1,4 @@
-const CACHE='raphy-v37-opening-fix';
+const CACHE='raphy-v38-slower-pacing';
 const CORE=['./','./index.html','./styles.bundle.css','./app.runtime.js','./manifest.json','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()]))});
