@@ -4195,6 +4195,189 @@ if(window.RaphyApp)window.RaphyApp.version='41';
   window.RaphyBuild=BUILD;
 })();
 
+
+/* ===== V43 MASKED CALL HARD FIX ===== */
+(()=>{
+  const BUILD='43';
+
+  unknown = function(){
+    const firstChoice=['tu l’as clashé','tu as fait comme si tu n’avais rien remarqué','tu lui as laissé croire qu’il avait le dernier mot'][S.choices.story0??0];
+    const alg=S.choices.algeria;
+    const remembered=[];
+    if(S.choices.v31_sink==='reversed')remembered.push('le rouge et le bleu');
+    if(S.choices.v31_car)remembered.push('la patte laissée sur la voiture');
+    if(S.choices.v31_paint)remembered.push('les retouches du mur');
+    if(S.choices.v32_horror)remembered.push('le couloir');
+    if(S.choices.v32_house)remembered.push('la pièce qui changeait');
+
+    let phase='ring',msgIndex=0,entered='';
+    const messages=[
+      'Je me souviens du magasin de lunettes.',
+      'Dans ta version, '+firstChoice+'.',
+      'Je me souviens des deux bouteilles. Du pneu. De la plage.',
+      remembered.length?'Je me souviens aussi de '+remembered.slice(0,3).join(', ')+'.':'Je me souviens des détails que tu pensais inutiles.',
+      alg===1?'Et de cette offre immobilière où Mehdi devait finalement gérer cinq enfants.':alg===0?'Et tu as refusé la brochure Algérie sans négocier les frais de dossier.':'Et la brochure immobilière reste juridiquement discutable.',
+      'Mais il manque une vérification.'
+    ];
+
+    function renderRing(){
+      phase='ring';
+      screen(
+        top(20)+hero('Trace 21','Numéro masqué','Un appel. Deux choix. Cette version attend vraiment ton action.')+
+        '<div class="v43-call-card">'+
+          '<div class="v43-call-orb">?</div>'+
+          '<div class="v43-call-name">NUMÉRO MASQUÉ</div>'+
+          '<div class="v43-call-sub">appel entrant · source inconnue</div>'+
+          '<div class="v43-call-actions" id="v43CallActions">'+
+            '<button type="button" class="v43-answer decline" data-v43-answer="decline"><span>✕</span><b>Refuser</b></button>'+
+            '<button type="button" class="v43-answer accept" data-v43-answer="accept"><span>✓</span><b>Décrocher</b></button>'+
+          '</div>'+
+          '<div class="v43-call-status" id="v43CallStatus">Appuie sur « Décrocher ».</div>'+
+        '</div>'+skip(20)
+      );
+      wireSkip(20);
+
+      const actions=$('#v43CallActions');
+      if(!actions)return;
+      let handled=false;
+      const answer=e=>{
+        const btn=e.target.closest('[data-v43-answer]');
+        if(!btn||handled||phase!=='ring')return;
+        handled=true;
+        const refused=btn.dataset.v43Answer==='decline';
+        $('[data-v43-answer]').forEach(x=>x.disabled=true);
+        $('#v43CallStatus').textContent=refused?'Appel refusé…':'Appel décroché…';
+        btn.classList.add('chosen');
+        vib(refused?[12,22,12]:[10,20,30]);
+        setTimeout(()=>startConversation(refused),180);
+      };
+      // Native delegation + pointer fallback for iPhone Safari.
+      actions.addEventListener('click',answer);
+      actions.addEventListener('pointerup',answer);
+    }
+
+    function startConversation(refused){
+      if(phase!=='ring')return;
+      phase='messages';msgIndex=0;
+      screen(
+        top(20)+hero('Trace 21','Numéro masqué',refused?'Tu as refusé. Pourtant, le message est déjà là.':'Tu as décroché. Il n’y a aucune voix.')+
+        '<div class="v43-phone">'+
+          '<div class="v43-phone-top"><span>19:47</span><b>MASQUÉ</b><span>•••</span></div>'+
+          '<div class="v43-thread" id="v43Thread"><div class="v43-msg in">'+(refused?'Refuser était logique.':'Tu as décroché.')+'</div></div>'+
+          '<div class="v43-controls" id="v43Controls"><button type="button" class="btn" id="v43Next">Lire le message suivant</button></div>'+
+        '</div>'+skip(20)
+      );
+      wireSkip(20);
+      $('#v43Next').addEventListener('click',showNext);
+    }
+
+    function scrollThread(){
+      const t=$('#v43Thread');
+      if(t)t.scrollTop=t.scrollHeight
+    }
+
+    function showNext(){
+      if(phase!=='messages')return;
+      const thread=$('#v43Thread'),btn=$('#v43Next');
+      if(!thread||!btn)return;
+      if(msgIndex>=messages.length)return askDate();
+      const m=document.createElement('div');
+      m.className='v43-msg in';
+      m.textContent=messages[msgIndex++];
+      thread.append(m);scrollThread();vib(4);
+      if(msgIndex<messages.length){
+        btn.textContent='Lire la suite'
+      }else{
+        btn.textContent='Répondre à la vérification';
+        btn.onclick=askDate
+      }
+    }
+
+    function askDate(){
+      if(phase==='date')return;
+      phase='date';entered='';
+      const thread=$('#v43Thread');
+      if(!thread)return;
+      thread.insertAdjacentHTML('beforeend','<div class="v43-msg in important">Premier vrai rendez-vous surprise. Jour + mois.</div>');
+      scrollThread();
+      $('#v43Controls').innerHTML=
+        '<div class="v43-date">'+
+          '<div class="eyebrow">JJMM</div>'+
+          '<div class="v43-dots" id="v43Dots"><i></i><i></i><i></i><i></i></div>'+
+          '<div class="v43-keypad">'+
+            [1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" data-v43-key="'+n+'">'+n+'</button>').join('')+
+            '<button type="button" data-v43-key="clear">C</button>'+
+            '<button type="button" data-v43-key="0">0</button>'+
+            '<button type="button" data-v43-key="back">⌫</button>'+
+          '</div>'+
+          '<button type="button" class="btn" id="v43Send" disabled>Envoyer</button>'+
+          '<div class="v43-error" id="v43Error"></div>'+
+        '</div>';
+
+      const paint=()=>{
+        $('[data-v43-dot]').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $('#v43Dots i').forEach((d,i)=>d.classList.toggle('filled',i<entered.length));
+        $('#v43Send').disabled=entered.length!==4;
+        $('#v43Error').textContent=''
+      };
+      $('[data-v43-key]').forEach(b=>b.addEventListener('click',()=>{
+        const k=b.dataset.v43Key;
+        if(k==='clear')entered='';
+        else if(k==='back')entered=entered.slice(0,-1);
+        else if(entered.length<4)entered+=k;
+        paint();vib(3)
+      }));
+      $('#v43Send').addEventListener('click',validateDate);
+      paint()
+    }
+
+    function validateDate(){
+      if(phase!=='date')return;
+      if(entered!=='1105'){
+        $('#v43Error').textContent='Indice : la plage, les sushi, le premier baiser.';
+        vib([8,18,8]);return
+      }
+      phase='reveal';
+      $('#v43Thread').insertAdjacentHTML('beforeend','<div class="v43-msg out">1105</div>');
+      $('#v43Controls').innerHTML='<button type="button" class="btn secondary" id="v43Reveal">Lire la réponse</button>';
+      scrollThread();
+      $('#v43Reveal').onclick=()=>revealStep(0)
+    }
+
+    const revealLines=['Bien.','Tu pensais chercher ce que la maison avait caché.','Elle n’a rien caché.','Elle a appris à te reconnaître à travers ce que tu laisses derrière toi.','Des traces.'];
+    function revealStep(i){
+      if(phase!=='reveal')return;
+      const thread=$('#v43Thread');
+      const m=document.createElement('div');
+      m.className='v43-msg in '+(i===revealLines.length-1?'final':'');
+      m.textContent=revealLines[i];
+      thread.append(m);scrollThread();
+      if(i<revealLines.length-1){
+        $('#v43Controls').innerHTML='<button type="button" class="btn secondary" id="v43RevealNext">Continuer</button>';
+        $('#v43RevealNext').onclick=()=>revealStep(i+1)
+      }else{
+        phase='hangup';
+        $('#v43Controls').innerHTML='<button type="button" class="btn danger" id="v43Hangup">Raccrocher</button>';
+        $('#v43Hangup').onclick=afterCall
+      }
+    }
+
+    function afterCall(){
+      phase='after';
+      screen(
+        '<div class="v39-after-call"><div class="v39-glitch-word">TRACE</div><p>Une serrure vient de s’ouvrir quelque part dans la maison.</p><p class="caption">L’appel est terminé. La suite attend ton choix.</p><button type="button" class="btn secondary" id="v43Find">Trouver laquelle</button></div>',
+        'centered horror'
+      );
+      $('#v43Find').onclick=()=>complete(20)
+    }
+
+    renderRing()
+  };
+
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
+  window.RaphyBuild=BUILD;
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
