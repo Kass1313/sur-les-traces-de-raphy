@@ -532,3 +532,41 @@ input,textarea,select{font-size:16px!important}
 /* ===== V41 FINAL RELIABILITY ===== */
 .v40-final-fallback{position:relative;z-index:6;margin-top:12px;min-width:min(82vw,300px);animation:v41FallbackIn .3s ease both}
 @keyframes v41FallbackIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+
+/* ===== V42 ROMANTIC MOVIE CREDITS ===== */
+.v42-credits-screen{padding:0!important;overflow:hidden;background:#070609}
+.v42-credits{position:relative;min-height:100svh;overflow:hidden;background:radial-gradient(circle at 50% 16%,rgba(105,72,94,.13),transparent 34%),#070609}
+.v42-credit-stars{position:absolute;inset:0;pointer-events:none;opacity:.28;background-image:radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px);background-size:43px 43px}
+.v42-credit-roll{position:relative;z-index:2;width:min(100%,760px);margin:0 auto;padding:78svh 22px 48svh;animation:v42Credits 185s linear forwards}
+.v42-credit-roll.fast{animation-duration:55s}
+.v42-credit-section{max-width:620px;margin:0 auto 34vh;text-align:center;opacity:.98}
+.v42-credit-section>small{display:block;font-size:10px;letter-spacing:.19em;color:#a99da8;text-transform:uppercase;margin-bottom:14px}
+.v42-credit-body{font-family:Georgia,serif;font-size:19px;line-height:1.72;color:#d9ced7}
+.v42-credit-body b,.v42-credit-body strong{color:#fff}
+.v42-credit-section.title .v42-credit-body,.v42-credit-section.heart .v42-credit-body,.v42-credit-section.end .v42-credit-body{font-size:21px}
+.v42-credit-section.title>small{font-size:15px;color:#efd2dc}
+.v42-credit-section.title .v42-credit-body{font-style:italic;color:#c8bbc5}
+.v42-credit-section.heart{padding:22px;border-top:1px solid rgba(239,131,157,.15);border-bottom:1px solid rgba(239,131,157,.15)}
+.v42-credit-section.heart>small,.v42-credit-section.tender>small{color:#e8b8c8}
+.v42-credit-section.award>small{color:#e7c880}
+.v42-credit-section.chaos .v42-credit-body,.v42-credit-section.comedy .v42-credit-body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.72}
+.v42-credit-section.end .v42-credit-body{font-size:25px;line-height:1.6}
+.v42-big-heart{display:inline-block;font-size:72px;filter:drop-shadow(0 0 24px rgba(239,131,157,.22))}
+.v42-stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.v42-stats span{min-width:140px;padding:16px 14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:5px}
+.v42-stats b{font:800 34px system-ui,-apple-system,sans-serif;color:#fff}.v42-stats small{font:700 9px system-ui,-apple-system,sans-serif;color:#998d98;text-transform:uppercase;letter-spacing:.09em}
+.v42-credit-controls{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;width:min(calc(100% - 24px),620px);display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:9px;border-radius:18px;background:rgba(11,9,13,.78);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08)}
+.v42-credit-controls .btn{min-width:0;padding:10px 8px;font-size:10px}
+@keyframes v42Credits{from{transform:translateY(0)}to{transform:translateY(-100%)}}
+@media(max-width:430px){
+  .v42-credit-roll{padding-left:18px;padding-right:18px;animation-duration:195s}
+  .v42-credit-roll.fast{animation-duration:58s}
+  .v42-credit-section{margin-bottom:30vh}
+  .v42-credit-body{font-size:17px;line-height:1.65}
+  .v42-credit-section.title .v42-credit-body,.v42-credit-section.heart .v42-credit-body,.v42-credit-section.end .v42-credit-body{font-size:19px}
+  .v42-credit-controls{grid-template-columns:1fr 1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .v42-credit-roll{animation-duration:260s}
+}
