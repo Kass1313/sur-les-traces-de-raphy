@@ -2022,6 +2022,168 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   };
 })();
 
+
+/* ===== V29 SCHOOL & COFFEE POLISH ===== */
+(()=>{
+  school = function(){
+    let found=0,chat=0,phase=0,escapeMeter=0,direction=1,runner=null;
+    const objects=[
+      ['🎒','sac',8,24],['🧥','veste',70,25],['🥤','gourde',36,42],
+      ['🧸','doudou',12,61],['🎨','dessin',70,61],['🥿','chaussure',41,72]
+    ];
+    screen(
+      top(11)+hero('Trace 12','Sortie d’école','Récupère les six affaires, évite les conversations-pièges, puis trouve une fenêtre de sortie.')+
+      '<div class="v29-school" id="v29School">'+
+        '<div class="v29-school-sign">MATERNELLE</div>'+
+        '<div class="v29-school-gate"></div>'+
+        objects.map((x,i)=>'<button class="v29-school-object" data-v29obj="'+i+'" style="left:'+x[2]+'%;top:'+x[3]+'%"><span>'+x[0]+'</span><small>'+x[1]+'</small></button>').join('')+
+        '<button class="v29-school-npc n1" data-v29npc="0">👩<span>« juste deux minutes… »</span></button>'+
+        '<button class="v29-school-npc n2" data-v29npc="1">👩‍🦱<span>« tu sais pour la kermesse ? »</span></button>'+
+        '<button class="v29-school-npc n3" data-v29npc="2">👨<span>« et le groupe WhatsApp ? »</span></button>'+
+        '<div class="v29-child-shadow">👧🏻　👦🏻</div>'+
+      '</div>'+
+      '<div class="card"><div class="hud"><span id="v29Found">0/6 affaires</span><span id="v29Chat">0 piège</span></div><div id="v29SchoolTask"><p class="caption">Les adultes sont fictifs. Le pouvoir du « juste deux minutes » ne l’est pas.</p></div></div>'+skip(11)
+    );
+    wireSkip(11);
+
+    $('[data-v29obj]').forEach(b=>b.onclick=()=>{
+      if(phase!==0||b.disabled)return;
+      b.disabled=true;b.classList.add('picked');found++;vib(6);
+      $('#v29Found').textContent=found+'/6 affaires';
+      toast(found===1?'Une affaire sauvée du triangle des Bermudes scolaire.':found===5?'Il en reste UNE. Parce qu’il en reste toujours une.':found===6?'Tout est là. Maintenant, sortir du portail sans réunion improvisée.':'Récupéré.');
+      if(found===6){phase=1;setTimeout(startEscape,650)}
+    });
+
+    $('[data-v29npc]').forEach(b=>b.onclick=()=>{
+      if(phase!==0)return;
+      chat++;$('#v29Chat').textContent=chat+' piège'+(chat>1?'s':'');
+      const lines=[
+        '« Juste deux minutes » vient de demander une rallonge de huit minutes.',
+        'Kermesse, gâteaux, tombola : la conversation vient de débloquer une extension.',
+        'Le groupe WhatsApp avait déjà 63 messages. Personne ne sait pourquoi.'
+      ];
+      toast(lines[+b.dataset.v29npc],3000);
+      b.animate([{transform:'scale(1)'},{transform:'scale(1.07)'},{transform:'scale(1)'}],{duration:350})
+    });
+
+    function startEscape(){
+      $('#v29SchoolTask').innerHTML=
+        '<div class="eyebrow">PHASE 2 · FUITE DU PORTAIL</div>'+
+        '<p class="caption">Le halo vert se déplace. Clique quand il est aligné avec Raphy.</p>'+
+        '<div class="v29-escape-track"><div class="v29-safe-zone"></div><div class="v29-runner" id="v29Runner">👩🏻</div></div>'+
+        '<button class="btn" id="v29ExitNow">Sortir maintenant</button>';
+      let pos=0,dir=1,last=performance.now();
+      const track=$('.v29-escape-track'),safe=$('.v29-safe-zone');
+      const loop=t=>{
+        if(!track?.isConnected||phase!==1)return;
+        const dt=Math.min(40,t-last)/16;last=t;pos+=dir*1.5*dt;
+        if(pos>92){pos=92;dir=-1}if(pos<0){pos=0;dir=1}
+        safe.style.left=pos+'%';requestAnimationFrame(loop)
+      };requestAnimationFrame(loop);
+      $('#v29ExitNow').onclick=()=>{
+        const p=parseFloat(safe.style.left||'0');
+        const target=46;
+        if(Math.abs(p-target)<11){
+          phase=2;toast(chat===0?'Sortie parfaite. Aucun échange de numéro, aucun comité créé.':'Sortie réussie. Quelques minutes ont été perdues au combat.');
+          $('#v29Runner').classList.add('escape');setTimeout(()=>complete(11),850)
+        }else{
+          chat++;$('#v29Chat').textContent=chat+' piège'+(chat>1?'s':'');
+          toast('Mauvais timing. Quelqu’un vient de commencer par « tant que je te tiens… »');
+        }
+      }
+    }
+  };
+
+  coffee = function(){
+    let step=0,shotReady=false,customersDone=false;
+    const ingredients=[
+      ['Vanille','🍦','vanilla'],['Lait','🥛','milk'],['Glace','🧊','ice'],['Espresso','☕','coffee'],['Caramel','🍯','caramel']
+    ];
+    screen(
+      top(15)+hero('Trace 16','Iced caramel macchiato','Construis la boisson, calibre l’espresso, puis affronte trois clients fictifs extrêmement confiants.')+
+      '<div class="v29-coffee-stage">'+
+        '<div class="v29-machine"><div class="v29-machine-top">RAPHY BAR</div><div class="v29-grouphead"></div><div class="v29-shot-stream" id="v29ShotStream"></div></div>'+
+        '<div class="v29-coffee-cup"><div id="v29CupLayers"></div><div class="v29-cup-r">R</div></div>'+
+        '<div class="v29-coffee-ticket" id="v29Ticket">ICED CARAMEL<br>MACCHIATO</div>'+
+      '</div>'+
+      '<div class="item-grid" id="v29CoffeeItems">'+ingredients.map((x,i)=>'<button class="item big" data-v29c="'+i+'"><span style="font-size:30px">'+x[1]+'</span><br>'+x[0]+'</button>').join('')+'</div>'+
+      '<div id="v29CoffeeExtra"></div>'+skip(15)
+    );
+    wireSkip(15);
+
+    $('[data-v29c]').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.v29c;
+      if(i!==step)return toast(['Le ticket vient de tousser très fort.','Le caramel te regarde. Il sait que ce n’est pas son tour.','On respecte les couches. Même dans un jeu.'][Math.floor(Math.random()*3)]);
+      if(i===3&&!shotReady){espressoGame(b);return}
+      commit(i,b)
+    });
+
+    function commit(i,b){
+      b.disabled=true;b.classList.add('selected');
+      const info=ingredients[i];
+      const d=document.createElement('div');
+      d.className='v29-coffee-layer '+info[2];
+      d.innerHTML=i===2?'<span>◆ ◆ ◆</span>':'';
+      $('#v29CupLayers').append(d);
+      d.animate([{transform:'scaleY(0)',opacity:.35},{transform:'scaleY(1)',opacity:1}],{duration:420,fill:'both'});
+      step++;vib(6);
+      if(step===5){toast('Boisson terminée. Malheureusement, les clients ont aussi été débloqués.');setTimeout(customers,650)}
+    }
+
+    function espressoGame(button){
+      $('#v29CoffeeItems').style.display='none';
+      $('#v29CoffeeExtra').innerHTML=
+        '<div class="card v29-shot-card"><div class="eyebrow">EXTRACTION ESPRESSO</div><div class="v29-shot-meter"><div class="v29-shot-good"></div><i id="v29ShotNeedle"></i></div><p class="caption">Arrête l’extraction quand l’aiguille passe dans la zone dorée.</p><button class="btn" id="v29StopShot">Lancer l’extraction</button></div>';
+      let running=false,pos=0,dir=1,last=performance.now(),raf=0;
+      $('#v29StopShot').onclick=()=>{
+        if(!running){
+          running=true;$('#v29StopShot').textContent='Arrêter';
+          $('#v29ShotStream').classList.add('on');
+          const loop=t=>{
+            if(!running)return;
+            const dt=Math.min(40,t-last)/16;last=t;pos+=dir*1.35*dt;
+            if(pos>100){pos=100;dir=-1}if(pos<0){pos=0;dir=1}
+            $('#v29ShotNeedle').style.left=pos+'%';raf=requestAnimationFrame(loop)
+          };raf=requestAnimationFrame(loop)
+        }else{
+          running=false;cancelAnimationFrame(raf);$('#v29ShotStream').classList.remove('on');
+          if(pos>=43&&pos<=61){
+            shotReady=true;toast('Extraction propre. Le barista imaginaire arrête enfin de juger.');
+            $('#v29CoffeeExtra').innerHTML='';$('#v29CoffeeItems').style.display='grid';commit(3,button)
+          }else{
+            toast(pos<43?'Trop court. L’espresso a encore des choses à dire.':'Trop long. L’espresso vient d’écrire ses mémoires.');
+            pos=0;$('#v29ShotNeedle').style.left='0%';$('#v29StopShot').textContent='Relancer'
+          }
+        }
+      }
+    }
+
+    function customers(){
+      $('#v29CoffeeItems').style.display='none';
+      let n=0;
+      const orders=[
+        ['Bonjour, je veux le même… sans café.',['Donc un lait caramel.','Je vais faire semblant de ne pas avoir entendu.','Hamoud prend la commande.']],
+        ['Avec 2 glaçons et demi exactement.',['Je coupe le troisième.','Vous avez un pied à coulisse ?','Je vous offre un glaçon moral.']],
+        ['Et très très chaud, mais glacé.',['Physique : désactivée.','Bien sûr, dans un univers parallèle.','Choisissez une température disponible sur Terre.']]
+      ];
+      const draw=()=>{
+        if(n>=orders.length){
+          customersDone=true;
+          $('#v29CoffeeExtra').innerHTML='<div class="card glow"><div class="eyebrow">SERVICE TERMINÉ</div><h3>Raphy garde la boisson.</h3><p class="caption">Les clients gardent leurs problèmes.</p><button class="btn" id="v29CoffeeEnd">Continuer</button></div>';
+          $('#v29CoffeeEnd').onclick=()=>complete(15);return
+        }
+        const o=orders[n];
+        $('#v29CoffeeExtra').innerHTML='<div class="v29-customer card"><div class="dialogue"><div class="avatar">'+['🙂','🧐','😌'][n]+'</div><div class="bubble">'+o[0]+'</div></div><div class="choices" style="margin-top:12px">'+o[1].map((x,j)=>'<button class="choice" data-v29co="'+j+'">'+x+'</button>').join('')+'</div></div>';
+        $('[data-v29co]').forEach(b=>b.onclick=()=>{
+          const j=+b.dataset.v29co;
+          toast(j===0?'Réponse professionnellement défendable.':j===1?'Le service client vient de quitter mentalement la pièce.':'C’est enregistré. Juridiquement fascinant.');
+          n++;setTimeout(draw,450)
+        })
+      };draw()
+    }
+  };
+})();
+
 window.__raphyRuntimePhase='booted';
 }catch(e){
 window.__raphyRuntimePhase='runtime-error';
