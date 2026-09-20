@@ -3343,8 +3343,10 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
       b.onclick=showInstallHelp;
       controls.append(b)
     }
-    b.textContent=isStandalone()?'✓':'＋';
-    b.title=isStandalone()?'Application installée':'Installer sur l’écran d’accueil'
+    const txt=isStandalone()?'✓':'＋';
+    const title=isStandalone()?'Application installée':'Installer sur l’écran d’accueil';
+    if(b.textContent!==txt)b.textContent=txt;
+    if(b.title!==title)b.title=title
   }
 
   addEventListener('beforeinstallprompt',e=>{
@@ -3420,6 +3422,103 @@ try{if(S.unlocked){if(S.storyDone)route(S.current);else opening()}else lock()}ca
   setTimeout(()=>{syncInstallButton();maybeShowInstallCard()},1200);
 
   // Small build marker only inside hidden QA console.
+  window.RaphyBuild=BUILD;
+})();
+
+
+/* ===== V35 RUNTIME QA & RECOVERY ===== */
+(()=>{
+  const BUILD='35';
+  let recoveryShown=false;
+
+  function safeStateCheck(){
+    const issues=[];
+    if(!S||typeof S!=='object')issues.push('état absent');
+    if(!Number.isInteger(Number(S.current))||Number(S.current)<0||Number(S.current)>25)issues.push('trace actuelle invalide');
+    if(!S.done||typeof S.done!=='object')issues.push('progression invalide');
+    if(!S.choices||typeof S.choices!=='object')issues.push('choix invalides');
+    try{JSON.stringify(S)}catch{issues.push('sauvegarde non sérialisable')}
+    return issues
+  }
+
+  function showRecovery(err){
+    if(recoveryShown||!S?.unlocked)return;
+    recoveryShown=true;
+    const scene=Math.max(0,Math.min(25,Number(S.current)||0));
+    const message=String(err&&err.message||err||'Erreur inconnue');
+    modal.hidden=false;
+    modal.innerHTML=
+      '<div class="modal-card v35-recovery">'+
+        '<div class="eyebrow">MODE RÉCUPÉRATION</div>'+
+        '<div class="v35-recovery-icon">↻</div>'+
+        '<h2>Cette trace a trébuché.</h2>'+
+        '<p>Ta progression est conservée. Tu peux simplement relancer cette trace.</p>'+
+        '<div class="actions"><button class="btn" id="v35Retry">Rejouer la trace</button><button class="btn secondary" id="v35Skip">Passer cette trace</button><button class="btn secondary" id="v35Details">Détails techniques</button></div>'+
+        '<div id="v35ErrorDetail"></div>'+
+      '</div>';
+    $('#v35Retry').onclick=()=>{recoveryShown=false;modal.hidden=true;modal.innerHTML='';route(scene)};
+    $('#v35Skip').onclick=()=>{recoveryShown=false;modal.hidden=true;modal.innerHTML='';complete(scene,true)};
+    $('#v35Details').onclick=()=>{
+      $('#v35ErrorDetail').innerHTML='<div class="card soft v35-error-box"><b>Build '+BUILD+' · trace '+(scene+1)+'</b><p>'+message.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))+'</p></div>'
+    }
+  }
+
+  addEventListener('error',e=>{
+    const src=String(e.filename||'');
+    if(src&&src.includes('app.runtime.js'))showRecovery(e.error||e.message)
+  });
+  addEventListener('unhandledrejection',e=>showRecovery(e.reason||'Promise rejetée'));
+
+  // Final route guard catches synchronous scene-init failures before they become a blank screen.
+  const routeV35=route;
+  route=function(i){
+    try{
+      return routeV35(i)
+    }catch(err){
+      console.error('V35 route recovery',err);
+      showRecovery(err);
+      return null
+    }
+  };
+
+  // Enhance hidden Mehdi console with a device/state diagnostic.
+  const devV35=dev;
+  dev=function(){
+    const result=devV35();
+    setTimeout(()=>{
+      if(sessionStorage.getItem('raphy-dev-ok')!=='1')return;
+      const actions=document.querySelector('.v33-dev-actions');
+      if(!actions||$('#v35Diag'))return;
+      const b=document.createElement('button');
+      b.className='btn secondary';b.id='v35Diag';b.textContent='Diagnostic appareil';
+      actions.append(b);
+      b.onclick=()=>{
+        let storage=false;
+        try{localStorage.setItem('__raphy_test','1');storage=localStorage.getItem('__raphy_test')==='1';localStorage.removeItem('__raphy_test')}catch{}
+        const stateIssues=safeStateCheck();
+        const rows=[
+          ['JavaScript',true,'runtime chargé'],
+          ['Sauvegarde locale',storage,storage?'lecture/écriture OK':'indisponible'],
+          ['Service Worker','serviceWorker'in navigator,'serviceWorker'in navigator?'compatible':'non disponible'],
+          ['Cache hors ligne','caches'in window,'caches'in window?'compatible':'non disponible'],
+          ['Canvas',!!document.createElement('canvas').getContext,'canvas disponible'],
+          ['Audio',!!(window.AudioContext||window.webkitAudioContext),(window.AudioContext||window.webkitAudioContext)?'compatible':'limité'],
+          ['Visual Viewport',!!window.visualViewport,window.visualViewport?'optimisation clavier active':'fallback CSS'],
+          ['Mode standalone',matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,'état actuel'],
+          ['Connexion',navigator.onLine,navigator.onLine?'en ligne':'hors connexion'],
+          ['État du jeu',stateIssues.length===0,stateIssues.length?stateIssues.join(', '):'cohérent']
+        ];
+        $('#v33DevPanel').innerHTML=
+          '<div class="card soft v35-diag-card"><div class="eyebrow">DIAGNOSTIC V'+BUILD+'</div><h3>Appareil + sauvegarde</h3>'+
+          '<div class="v35-diag-list">'+rows.map(r=>'<div><span class="'+(r[1]?'ok':'warn')+'">'+(r[1]?'✓':'!')+'</span><b>'+r[0]+'</b><small>'+r[2]+'</small></div>').join('')+'</div>'+
+          '<p class="caption">Ce test vérifie les fonctions techniques disponibles. Il ne remplace pas une partie complète sur téléphone.</p></div>'
+      }
+    },0);
+    return result
+  };
+
+  // Keep the public internal API aligned with the real build.
+  if(window.RaphyApp)window.RaphyApp.version=BUILD;
   window.RaphyBuild=BUILD;
 })();
 
