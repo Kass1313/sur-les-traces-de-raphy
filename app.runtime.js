@@ -21,10 +21,92 @@ function wireSkip(i){let b=$('#skip');if(!b)return;b.onclick=()=>{if(!skipArmed)
 function complete_legacy(i,sk=false){S.done[i]=true;S.current=Math.min(i+1,25);save();if(sk)toast('Séquence passée. Le dossier fait semblant de ne rien avoir vu.');setTimeout(()=>route(S.current),180)}
 function dots(n,i){return '<div class="stepper">'+Array.from({length:n},(_,x)=>'<i class="'+(x<=i?'on':'')+'"></i>').join('')+'</div>'}
 function lock(){
-screen('<div class="lock-mark">🔒</div>'+hero('Accès restreint','Une personne seulement.','Si tu n’es pas Raphy, pose ce téléphone avec beaucoup de dignité.')+'<div class="card glow"><input id="pin" class="code-input" inputmode="numeric" maxlength="6" placeholder="••••••"><div class="actions" style="margin-top:12px"><button class="btn" id="go">Entrer</button><button class="btn secondary" id="hint">Tu veux un indice ?</button></div><div id="hz" class="hint-zone"></div></div>','centered');
-let tries=0,h=0,dodge=0;const attempt=()=>{tries++;if($('#pin').value===CODE){S.unlocked=true;save();vib([30,30,60]);toast('Bon. C’était bien toi. J’avais un doute extrêmement injustifié.');setTimeout(opening,500)}else{$('#pin').value='';toast(['Non. Mais la confiance était magnifique.','Le code demande un avocat.','Six chiffres ont bien été saisis. C’est déjà quelque chose.','Raphy a choisi la confiance. Le clavier recommande la prudence.'][Math.min(tries-1,3)])}};
-$('#go').onclick=attempt;$('#pin').onkeydown=e=>e.key==='Enter'&&attempt();
-$('#hint').onclick=()=>{h++;if(h===1){$('#hz').innerHTML='<div class="card soft"><b>Haha…</b><br>Tu peux pas te passer de moi deux minutes ? Tu veux VRAIMENT un indice ?<div class="actions two" style="margin-top:12px"><button class="btn small" id="yes">Oui 🙄</button><button class="btn small secondary runaway" id="no">Non</button></div></div>';let no=$('#no'),z=$('#hz');const run=()=>{dodge++;no.style.left=Math.random()*Math.max(20,z.clientWidth-no.offsetWidth-20)+'px';no.style.top=(35+Math.random()*25)+'px';if(dodge>2){no.textContent='Très courageuse.';setTimeout(()=>no.remove(),500)}};no.onpointerenter=run;no.onclick=run;$('#yes').onclick=()=>$('#hz').innerHTML='<div class="card soft"><b>Indice 1 :</b> une date commune. Six chiffres. Non, 123456 n’est pas romantique.</div>'}else if(h===2)$('#hz').innerHTML='<div class="card soft"><b>Indice 2 :</b> ça commence par <b>06</b>. Là je t’aide beaucoup trop.</div>';else $('#hz').innerHTML='<div class="card soft"><b>Bon :</b> 06 • 03 • 61. Si tu rates encore, le clavier demande une pause.</div>'};
+  document.body.classList.remove('raphy-paused');
+  let value='',tries=0,h=0,dodge=0;
+  const render=()=>{
+    screen(
+      '<div class="v26-lock-wrap">'+
+        '<div class="lock-mark v26-lock-mark">🔒</div>'+
+        hero('Accès restreint','Une personne seulement.','Si tu n’es pas Raphy, pose ce téléphone avec beaucoup de dignité.')+
+        '<div class="card glow v26-lock-card">'+
+          '<div class="eyebrow">CODE À 6 CHIFFRES</div>'+
+          '<div class="v26-pin-dots" id="v26Dots">'+Array.from({length:6},(_,i)=>'<i data-dot="'+i+'"></i>').join('')+'</div>'+
+          '<input id="pin" class="code-input v26-pin-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" placeholder="Tape le code ici" aria-label="Code à six chiffres">'+
+          '<div class="v26-keypad" id="v26Keypad">'+
+            [1,2,3,4,5,6,7,8,9].map(n=>'<button type="button" data-key="'+n+'">'+n+'</button>').join('')+
+            '<button type="button" data-key="clear" class="v26-key-small">C</button>'+
+            '<button type="button" data-key="0">0</button>'+
+            '<button type="button" data-key="back" class="v26-key-small">⌫</button>'+
+          '</div>'+
+          '<button class="btn v26-enter" id="go" disabled>Entrer</button>'+
+          '<button class="btn secondary" id="hint" style="margin-top:10px">Tu veux un indice ?</button>'+
+          '<div id="hz" class="hint-zone"></div>'+
+        '</div>'+
+      '</div>',
+      'centered v26-lock-screen'
+    );
+
+    const input=$('#pin'),go=$('#go');
+    const paint=()=>{
+      value=(input.value||'').replace(/\D/g,'').slice(0,6);
+      input.value=value;
+      $$('[data-dot]').forEach((d,i)=>d.classList.toggle('filled',i<value.length));
+      go.disabled=value.length!==6;
+    };
+    input.addEventListener('input',paint);
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&value.length===6)attempt();
+    });
+    input.addEventListener('paste',()=>setTimeout(paint,0));
+    input.addEventListener('pointerdown',()=>setTimeout(()=>input.focus(),0));
+
+    $$('[data-key]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.key;
+      if(k==='clear')value='';
+      else if(k==='back')value=value.slice(0,-1);
+      else if(value.length<6)value+=k;
+      input.value=value;paint();vib(5);
+      if(value.length===6)input.blur()
+    });
+
+    function attempt(){
+      tries++;
+      if(value===CODE){
+        go.disabled=true;
+        S.unlocked=true;save();vib([30,30,60]);
+        toast('Bon. C’était bien toi. J’avais un doute extrêmement injustifié.');
+        document.querySelector('.v26-lock-card')?.classList.add('unlocked');
+        setTimeout(opening,650)
+      }else{
+        value='';input.value='';paint();
+        document.querySelector('.v26-lock-card')?.animate(
+          [{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],
+          {duration:280}
+        );
+        toast(['Non. Mais la confiance était magnifique.','Le code demande un avocat.','Six chiffres ont bien été saisis. C’est déjà quelque chose.','Raphy a choisi la confiance. Le clavier recommande la prudence.'][Math.min(tries-1,3)])
+      }
+    }
+    go.onclick=attempt;
+
+    $('#hint').onclick=()=>{
+      h++;
+      if(h===1){
+        $('#hz').innerHTML='<div class="card soft"><b>Haha…</b><br>Tu peux pas te passer de moi deux minutes ? Tu veux VRAIMENT un indice ?<div class="actions two" style="margin-top:12px"><button class="btn small" id="yes">Oui 🙄</button><button class="btn small secondary runaway" id="no">Non</button></div></div>';
+        let no=$('#no'),z=$('#hz');
+        const run=()=>{dodge++;no.style.left=Math.random()*Math.max(20,z.clientWidth-no.offsetWidth-20)+'px';no.style.top=(35+Math.random()*25)+'px';if(dodge>2){no.textContent='Très courageuse.';setTimeout(()=>no.remove(),500)}};
+        no.onpointerenter=run;no.onclick=run;
+        $('#yes').onclick=()=>$('#hz').innerHTML='<div class="card soft"><b>Indice 1 :</b> une date commune. Six chiffres. Non, 123456 n’est pas romantique.</div>'
+      }else if(h===2){
+        $('#hz').innerHTML='<div class="card soft"><b>Indice 2 :</b> ça commence par <b>06</b>. Là je t’aide beaucoup trop.</div>'
+      }else{
+        $('#hz').innerHTML='<div class="card soft"><b>Bon :</b> 06 • 03 • 61. Si tu rates encore, le clavier demande une pause.</div>'
+      }
+    };
+
+    paint();
+    setTimeout(()=>{try{input.focus({preventScroll:true})}catch{input.focus()}},350);
+  };
+  render()
 }
 function opening_legacy(){screen('<div class="memory-scene" style="min-height:390px;background:linear-gradient(160deg,#362538,#0b0a10)"><div style="position:absolute;inset:0;display:grid;place-items:center"><div style="width:230px;height:150px;border-radius:12px;background:#efe4da;transform:rotate(-4deg);display:grid;place-items:center;color:#3f3040;font:22px Georgia">Pour Raphy</div></div><div class="memory-copy"><h3>J’avais prévu quelque chose de simple.</h3><p>Puis Hamoud a touché un truc.</p></div></div><div class="card"><p class="storyline">À l’intérieur : une clé, une photo retournée et une phrase : <i>« Suis les traces. Certaines sont à toi. D’autres… te connaissent déjà. »</i></p></div><button class="btn" id="o">Ouvrir</button>');$('#o').onclick=()=>story(0)}
 const STORY=[
